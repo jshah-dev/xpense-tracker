@@ -52,7 +52,8 @@ function getExpenseSheet(spreadsheet, requestedSheetName) {
 
   var allSheets = spreadsheet.getSheets();
   for (var i = 0; i < allSheets.length; i++) {
-    if (allSheets[i].getName() !== "Participants") {
+    var sName = allSheets[i].getName();
+    if (sName !== "Participants" && sName !== "Config") {
       return allSheets[i];
     }
   }
@@ -88,6 +89,70 @@ function getParticipantsList(spreadsheet) {
   return tags;
 }
 
+// Resolves or creates the Config sheet tab for categories, payment modes, and base currency
+function getConfigSheet(spreadsheet) {
+  var configSheet = spreadsheet.getSheetByName("Config");
+  if (!configSheet) {
+    configSheet = spreadsheet.insertSheet("Config");
+    configSheet.appendRow(["Setting Key", "Setting Value", "Updated At"]);
+  }
+  return configSheet;
+}
+
+// Reads trip configuration from Config sheet
+function getTripConfig(spreadsheet) {
+  var configSheet = spreadsheet.getSheetByName("Config");
+  var config = {
+    baseCurrency: "INR",
+    categories: [],
+    paymentModes: []
+  };
+  if (!configSheet) {
+    return config;
+  }
+
+  var data = configSheet.getDataRange().getValues();
+  for (var i = 1; i < data.length; i++) {
+    var key = String(data[i][0] || "").trim();
+    var val = String(data[i][1] || "").trim();
+    if (key === "baseCurrency" && val) {
+      config.baseCurrency = val;
+    } else if (key === "categories" && val) {
+      try {
+        config.categories = JSON.parse(val);
+      } catch (e) {
+        config.categories = val.split(",").map(function(s) { return s.trim(); }).filter(Boolean);
+      }
+    } else if (key === "paymentModes" && val) {
+      try {
+        config.paymentModes = JSON.parse(val);
+      } catch (e) {
+        config.paymentModes = val.split(",").map(function(s) { return s.trim(); }).filter(Boolean);
+      }
+    }
+  }
+  return config;
+}
+
+// Updates trip configuration in Config sheet
+function setTripConfig(spreadsheet, newConfig) {
+  var configSheet = getConfigSheet(spreadsheet);
+  var currentConfig = getTripConfig(spreadsheet);
+
+  if (newConfig.baseCurrency) currentConfig.baseCurrency = String(newConfig.baseCurrency).trim().toUpperCase();
+  if (Array.isArray(newConfig.categories) && newConfig.categories.length > 0) currentConfig.categories = newConfig.categories;
+  if (Array.isArray(newConfig.paymentModes) && newConfig.paymentModes.length > 0) currentConfig.paymentModes = newConfig.paymentModes;
+
+  configSheet.clear();
+  configSheet.appendRow(["Setting Key", "Setting Value", "Updated At"]);
+  var now = new Date().toISOString();
+  configSheet.appendRow(["baseCurrency", currentConfig.baseCurrency || "INR", now]);
+  configSheet.appendRow(["categories", JSON.stringify(currentConfig.categories || []), now]);
+  configSheet.appendRow(["paymentModes", JSON.stringify(currentConfig.paymentModes || []), now]);
+
+  return currentConfig;
+}
+
 /**
  * GET Handler: Fetches live trip summary, category breakdown, recent ledger entries, and synced participant tags.
  */
@@ -116,6 +181,7 @@ function doGet(e) {
     var spreadsheet = SpreadsheetApp.openById(params.sheetId);
     var sheet = getExpenseSheet(spreadsheet, params.sheetName);
     var participants = getParticipantsList(spreadsheet);
+    var config = getTripConfig(spreadsheet);
 
     var data = sheet.getDataRange().getValues();
 
@@ -130,7 +196,8 @@ function doGet(e) {
           categoryBreakdown: {},
           paidByBreakdown: {},
           recentTransactions: [],
-          participants: participants
+          participants: participants,
+          config: config
         }
       });
     }
@@ -196,7 +263,8 @@ function doGet(e) {
         categoryBreakdown: categoryBreakdown,
         paidByBreakdown: paidByBreakdown,
         recentTransactions: latestTransactions,
-        participants: participants
+        participants: participants,
+        config: config
       }
     });
 
@@ -265,7 +333,17 @@ function doPost(e) {
       });
     }
 
-    // Action 2: Delete Expense Transaction
+    // Action 2: Update Synced Trip Configuration (Categories, Payment Modes, Base Currency)
+    if (payload.action === "updateConfig") {
+      var savedConfig = setTripConfig(spreadsheet, payload.config || {});
+      return jsonResponse({
+        status: "success",
+        message: "Trip configuration updated successfully in Google Sheets",
+        config: savedConfig
+      });
+    }
+
+    // Action 3: Delete Expense Transaction
     if (payload.action === "deleteExpense") {
       var txnIdToDelete = String(payload.transactionId || "").trim();
       if (!txnIdToDelete) {

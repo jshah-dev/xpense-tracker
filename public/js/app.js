@@ -5,23 +5,75 @@
 
 // Category icon map and color accents
 const CATEGORY_META = {
-  'Food & Dining': { icon: '🍛', color: '#f97316', bg: 'bg-orange-500/10', text: 'text-orange-400' },
-  'Travel Tickets': { icon: '✈️', color: '#3b82f6', bg: 'bg-blue-500/10', text: 'text-blue-400' },
-  'Fuel & Tolls': { icon: '⛽', color: '#06b6d4', bg: 'bg-cyan-500/10', text: 'text-cyan-400' },
-  'Stay & Hotel': { icon: '🏨', color: '#8b5cf6', bg: 'bg-purple-500/10', text: 'text-purple-400' },
-  'Tickets & Activities': { icon: '🎟️', color: '#10b981', bg: 'bg-emerald-500/10', text: 'text-emerald-400' },
-  'Shopping': { icon: '🛍️', color: '#ec4899', bg: 'bg-pink-500/10', text: 'text-pink-400' },
-  'General / Other': { icon: '📦', color: '#64748b', bg: 'bg-slate-500/10', text: 'text-slate-400' },
+  'Food & Dining': { icon: '🍛', color: '#f97316', bg: 'bg-orange-500/10', text: 'text-orange-400', label: 'Food' },
+  'Travel Tickets': { icon: '✈️', color: '#3b82f6', bg: 'bg-blue-500/10', text: 'text-blue-400', label: 'Tickets' },
+  'Fuel & Tolls': { icon: '⛽', color: '#06b6d4', bg: 'bg-cyan-500/10', text: 'text-cyan-400', label: 'Fuel/Toll' },
+  'Stay & Hotel': { icon: '🏨', color: '#8b5cf6', bg: 'bg-purple-500/10', text: 'text-purple-400', label: 'Stay' },
+  'Tickets & Activities': { icon: '🎟️', color: '#10b981', bg: 'bg-emerald-500/10', text: 'text-emerald-400', label: 'Activities' },
+  'Shopping': { icon: '🛍️', color: '#ec4899', bg: 'bg-pink-500/10', text: 'text-pink-400', label: 'Shopping' },
+  'Local Transport / Cabs': { icon: '🚕', color: '#f59e0b', bg: 'bg-amber-500/10', text: 'text-amber-400', label: 'Cabs/Taxi' },
+  'Public Transport': { icon: '🚇', color: '#0ea5e9', bg: 'bg-sky-500/10', text: 'text-sky-400', label: 'Transit' },
+  'Souvenirs': { icon: '🎁', color: '#d946ef', bg: 'bg-fuchsia-500/10', text: 'text-fuchsia-400', label: 'Souvenirs' },
+  'Groceries & Supplies': { icon: '🛒', color: '#84cc16', bg: 'bg-lime-500/10', text: 'text-lime-400', label: 'Groceries' },
+  'Drinks & Cafe': { icon: '☕', color: '#eab308', bg: 'bg-yellow-500/10', text: 'text-yellow-400', label: 'Drinks/Cafe' },
+  'Pharmacy / Medical': { icon: '💊', color: '#f43f5e', bg: 'bg-rose-500/10', text: 'text-rose-400', label: 'Pharmacy' },
+  'Rentals & Gear': { icon: '🚗', color: '#6366f1', bg: 'bg-indigo-500/10', text: 'text-indigo-400', label: 'Rentals' },
+  'SIM & Internet': { icon: '📱', color: '#0284c7', bg: 'bg-cyan-500/10', text: 'text-cyan-400', label: 'SIM/Data' },
+  'Visa & Fees': { icon: '🛂', color: '#14b8a6', bg: 'bg-teal-500/10', text: 'text-teal-400', label: 'Visa/Fees' },
+  'General / Other': { icon: '📦', color: '#64748b', bg: 'bg-slate-500/10', text: 'text-slate-400', label: 'General' },
   // Legacy aliases for backwards compatibility with existing or cached data
-  'Transport / Fuel': { icon: '✈️', color: '#3b82f6', bg: 'bg-blue-500/10', text: 'text-blue-400' },
-  'Travel': { icon: '✈️', color: '#3b82f6', bg: 'bg-blue-500/10', text: 'text-blue-400' },
-  'Transport': { icon: '✈️', color: '#3b82f6', bg: 'bg-blue-500/10', text: 'text-blue-400' }
+  'Transport / Fuel': { icon: '✈️', color: '#3b82f6', bg: 'bg-blue-500/10', text: 'text-blue-400', label: 'Travel Tickets' },
+  'Travel': { icon: '✈️', color: '#3b82f6', bg: 'bg-blue-500/10', text: 'text-blue-400', label: 'Travel Tickets' },
+  'Transport': { icon: '✈️', color: '#3b82f6', bg: 'bg-blue-500/10', text: 'text-blue-400', label: 'Travel Tickets' }
 };
+
+const ALL_CATEGORY_PRESETS = [
+  'Food & Dining',
+  'Travel Tickets',
+  'Fuel & Tolls',
+  'Stay & Hotel',
+  'Tickets & Activities',
+  'Shopping',
+  'Local Transport / Cabs',
+  'Public Transport',
+  'Souvenirs',
+  'Groceries & Supplies',
+  'Drinks & Cafe',
+  'Pharmacy / Medical',
+  'Rentals & Gear',
+  'SIM & Internet',
+  'Visa & Fees',
+  'General / Other'
+];
+
+const PAYMENT_MODE_PRESETS = [
+  { mode: 'Cash', icon: '💵', label: 'Cash' },
+  { mode: 'UPI / GPay', icon: '📱', label: 'UPI / GPay' },
+  { mode: 'Credit Card', icon: '💳', label: 'Credit Card' },
+  { mode: 'Debit Card', icon: '💳', label: 'Debit Card' },
+  { mode: 'Forex Card', icon: '🌐', label: 'Forex Card' },
+  { mode: 'Apple Pay / Google Pay', icon: '📲', label: 'Apple/G-Pay' },
+  { mode: 'Net Banking / Wire', icon: '🏦', label: 'Net Banking' },
+  { mode: 'Transit Card', icon: '🎫', label: 'Transit Card' },
+  { mode: 'Other', icon: '📝', label: 'Other' }
+];
 
 let currentCategory = '';
 let currentPaidBy = '';
 let currentPaymentMode = '';
 let optimisticTransactions = [];
+let settingsActiveCategories = [];
+let settingsActivePaymentModes = [];
+
+function getActiveBaseCurrency() {
+  const trip = Storage.getActiveTrip();
+  return (trip && trip.baseCurrency) ? trip.baseCurrency : 'INR';
+}
+
+function formatTripSpend(amount) {
+  const currencyCode = getActiveBaseCurrency();
+  return formatCurrency(amount, currencyCode);
+}
 
 document.addEventListener('DOMContentLoaded', () => {
   initApp();
@@ -105,6 +157,9 @@ function parseUrlTripParameters() {
       sheetId: tripToImport.sheetId,
       scriptUrl: tripToImport.scriptUrl,
       secret: tripToImport.secret,
+      baseCurrency: tripToImport.baseCurrency || 'INR',
+      categories: tripToImport.categories || null,
+      paymentModes: tripToImport.paymentModes || null,
       isOwner: false // Member role: settings are protected from accidental edits!
     });
 
@@ -127,34 +182,57 @@ function setupEventListeners() {
   amountInput.addEventListener('input', updateConvertedPreview);
   rateInput.addEventListener('input', () => {
     const code = currencySelect.value;
-    if (code !== 'INR') {
+    const baseCode = getActiveBaseCurrency();
+    if (code !== baseCode) {
       Storage.setCachedRate(code, rateInput.value);
     }
     updateConvertedPreview();
   });
 
-  // Category Chips
-  document.querySelectorAll('.category-pill').forEach(btn => {
-    btn.addEventListener('click', () => {
-      document.querySelectorAll('.category-pill').forEach(b => b.classList.remove('active', 'border-blue-500', 'bg-slate-700'));
+  // Category Chips (Event Delegation)
+  const categoryChipsContainer = document.getElementById('category-chips');
+  if (categoryChipsContainer) {
+    categoryChipsContainer.addEventListener('click', (e) => {
+      const btn = e.target.closest('.category-pill');
+      if (!btn) return;
+      categoryChipsContainer.querySelectorAll('.category-pill').forEach(b => b.classList.remove('active', 'border-blue-500', 'bg-slate-700'));
       btn.classList.add('active', 'border-blue-500', 'bg-slate-700');
       currentCategory = btn.dataset.category;
     });
-  });
+  }
 
-  // Payment Mode Chips
-  document.querySelectorAll('.payment-pill').forEach(btn => {
-    btn.addEventListener('click', () => {
-      document.querySelectorAll('.payment-pill').forEach(b => b.classList.remove('active', 'border-blue-500', 'bg-slate-700'));
+  // Payment Mode Chips (Event Delegation)
+  const paymentChipsContainer = document.getElementById('payment-mode-chips');
+  if (paymentChipsContainer) {
+    paymentChipsContainer.addEventListener('click', (e) => {
+      const btn = e.target.closest('.payment-pill');
+      if (!btn) return;
+      paymentChipsContainer.querySelectorAll('.payment-pill').forEach(b => b.classList.remove('active', 'border-blue-500', 'bg-slate-700'));
       btn.classList.add('active', 'border-blue-500', 'bg-slate-700');
       currentPaymentMode = btn.dataset.mode;
     });
-  });
+  }
 
   // Quick Add Tag from Main Form
   const quickAddBtn = document.getElementById('quick-add-tag-btn');
   if (quickAddBtn) {
     quickAddBtn.addEventListener('click', handleQuickAddTag);
+  }
+
+  // Quick Customize Categories from Main Form
+  const customizeCatsBtn = document.getElementById('customize-categories-btn');
+  if (customizeCatsBtn) {
+    customizeCatsBtn.addEventListener('click', () => {
+      openSettingsModal(null, 'categories');
+    });
+  }
+
+  // Quick Customize Payment Modes from Main Form
+  const customizePaymentBtn = document.getElementById('customize-payment-modes-btn');
+  if (customizePaymentBtn) {
+    customizePaymentBtn.addEventListener('click', () => {
+      openSettingsModal(null, 'payment');
+    });
   }
 
   // Form Submission
@@ -359,15 +437,27 @@ function renderActiveTrip() {
   const tripNameEl = document.getElementById('current-trip-name');
   const openSheetLink = document.getElementById('open-sheet-link');
   const quickEditBtn = document.getElementById('quick-edit-trip-btn');
+  const currencySelect = document.getElementById('currency-select');
+  const exchangeBaseCode = document.getElementById('exchange-rate-base-code');
+
+  const baseCurrency = getActiveBaseCurrency();
+  if (currencySelect) {
+    currencySelect.value = baseCurrency;
+  }
+  if (exchangeBaseCode) {
+    exchangeBaseCode.textContent = baseCurrency;
+  }
 
   renderPaidByChips();
+  renderCategoryChips();
+  renderPaymentModeChips();
 
   if (!activeTrip) {
     tripNameEl.textContent = 'Configure Trip';
-    document.getElementById('hero-total-amount').textContent = '₹ 0.00';
+    document.getElementById('hero-total-amount').textContent = formatTripSpend(0);
     document.getElementById('hero-total-count').textContent = '0 expenses';
     const pieCenter = document.getElementById('pie-center-amount');
-    if (pieCenter) pieCenter.textContent = '₹ 0.00';
+    if (pieCenter) pieCenter.textContent = formatTripSpend(0);
     renderCategoryBreakdown({}, 0);
     openSheetLink.classList.add('hidden');
     if (quickEditBtn) quickEditBtn.classList.remove('hidden');
@@ -388,6 +478,25 @@ function renderActiveTrip() {
   }
 
   const isOwner = activeTrip && activeTrip.isOwner !== false;
+
+  // Quick customize buttons on main form are Creator-Only
+  const customizeCatsBtn = document.getElementById('customize-categories-btn');
+  const customizePaymentBtn = document.getElementById('customize-payment-modes-btn');
+  if (customizeCatsBtn) {
+    if (isOwner) {
+      customizeCatsBtn.classList.remove('hidden');
+    } else {
+      customizeCatsBtn.classList.add('hidden');
+    }
+  }
+  if (customizePaymentBtn) {
+    if (isOwner) {
+      customizePaymentBtn.classList.remove('hidden');
+    } else {
+      customizePaymentBtn.classList.add('hidden');
+    }
+  }
+
   if (activeTrip.sheetId && isOwner) {
     openSheetLink.href = `https://docs.google.com/spreadsheets/d/${activeTrip.sheetId}/edit`;
     openSheetLink.classList.remove('hidden');
@@ -430,6 +539,199 @@ function renderPaidByChips() {
       currentPaidBy = name;
     });
     container.appendChild(btn);
+  });
+}
+
+/**
+ * Render Category Chips dynamically in Expense Form
+ */
+function renderCategoryChips() {
+  const container = document.getElementById('category-chips');
+  if (!container) return;
+  const activeTrip = Storage.getActiveTrip();
+  const tripId = activeTrip ? activeTrip.id : null;
+  const categories = Storage.getTripCategories(tripId);
+  container.innerHTML = '';
+
+  categories.forEach((cat, idx) => {
+    const meta = CATEGORY_META[cat] || { icon: '📦', label: cat };
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    const isLastSingle = (idx === categories.length - 1 && categories.length % 3 === 1);
+    btn.className = `category-pill px-2 rounded-xl bg-slate-800 border border-slate-700 flex ${
+      isLastSingle ? 'col-span-3 flex-row space-x-1.5 py-2' : 'flex-col space-y-0.5 py-1.5'
+    } items-center justify-center transition text-center ${
+      currentCategory === cat ? 'active border-blue-500 bg-slate-700' : ''
+    }`;
+    btn.dataset.category = cat;
+    btn.innerHTML = `
+      <span class="text-sm leading-none">${meta.icon}</span>
+      <span class="text-[10px] font-semibold text-slate-200 leading-tight truncate max-w-full">${meta.label || cat}</span>
+    `;
+    container.appendChild(btn);
+  });
+}
+
+/**
+ * Render Payment Mode Chips dynamically in Expense Form
+ */
+function renderPaymentModeChips() {
+  const container = document.getElementById('payment-mode-chips');
+  if (!container) return;
+  const activeTrip = Storage.getActiveTrip();
+  const tripId = activeTrip ? activeTrip.id : null;
+  const modes = Storage.getTripPaymentModes(tripId);
+  container.innerHTML = '';
+
+  modes.forEach(mode => {
+    const preset = PAYMENT_MODE_PRESETS.find(p => p.mode === mode);
+    const icon = preset ? preset.icon : '💳';
+    const label = preset ? preset.label : mode;
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = `payment-pill px-3 py-1.5 rounded-lg bg-slate-800 border border-slate-700 text-xs font-semibold text-slate-200 transition ${
+      currentPaymentMode === mode ? 'active border-blue-500 bg-slate-700' : ''
+    }`;
+    btn.dataset.mode = mode;
+    btn.innerHTML = `<span>${icon} ${label}</span>`;
+    container.appendChild(btn);
+  });
+}
+
+/**
+ * Render Category Presets Toggle Grid in Settings Modal
+ */
+function renderCategoryPresetsInSettings(isOwner = true) {
+  const grid = document.getElementById('settings-category-preset-grid');
+  const countBadge = document.getElementById('active-category-count');
+  if (!grid) return;
+
+  if (countBadge) {
+    countBadge.textContent = `${settingsActiveCategories.length} Active`;
+  }
+  grid.innerHTML = '';
+
+  ALL_CATEGORY_PRESETS.forEach(cat => {
+    const meta = CATEGORY_META[cat] || { icon: '📦', label: cat };
+    const isActive = settingsActiveCategories.includes(cat);
+    const card = document.createElement('button');
+    card.type = 'button';
+    card.className = `p-2 rounded-xl border flex items-center justify-between transition text-left text-xs ${
+      isActive
+        ? 'bg-blue-600/20 border-blue-500 text-white shadow-sm'
+        : 'bg-slate-800 border-slate-700 text-slate-400 opacity-60 hover:opacity-100 hover:border-slate-600'
+    } ${!isOwner ? 'cursor-not-allowed opacity-80' : ''}`;
+
+    card.innerHTML = `
+      <div class="flex items-center space-x-1.5 min-w-0 pr-1">
+        <span class="text-base flex-shrink-0">${meta.icon}</span>
+        <span class="font-medium truncate">${meta.label || cat}</span>
+      </div>
+      <span class="w-4 h-4 rounded-full flex items-center justify-center text-[10px] font-bold flex-shrink-0 ${
+        isActive ? 'bg-blue-500 text-white' : 'border border-slate-600 text-transparent'
+      }">✓</span>
+    `;
+
+    card.addEventListener('click', () => {
+      if (!isOwner) {
+        showToast('Only the trip creator can modify categories. Tap "Unlock Creator Settings" above.', true);
+        return;
+      }
+      if (settingsActiveCategories.includes(cat)) {
+        if (settingsActiveCategories.length <= 1) {
+          showToast('At least one category must remain active.', true);
+          return;
+        }
+        settingsActiveCategories = settingsActiveCategories.filter(c => c !== cat);
+      } else {
+        settingsActiveCategories.push(cat);
+      }
+      renderCategoryPresetsInSettings(true);
+
+      // Auto-save immediately for the active trip
+      const activeTrip = Storage.getActiveTrip();
+      if (activeTrip && activeTrip.id) {
+        Storage.setTripCategories(activeTrip.id, settingsActiveCategories);
+        renderCategoryChips();
+        if (activeTrip.scriptUrl && activeTrip.sheetId && activeTrip.secret) {
+          SheetsAPI.updateTripConfig(activeTrip, {
+            categories: settingsActiveCategories,
+            paymentModes: settingsActivePaymentModes,
+            baseCurrency: activeTrip.baseCurrency || 'INR'
+          });
+        }
+      }
+    });
+
+    grid.appendChild(card);
+  });
+}
+
+/**
+ * Render Payment Mode Presets Toggle Grid in Settings Modal
+ */
+function renderPaymentModePresetsInSettings(isOwner = true) {
+  const grid = document.getElementById('settings-payment-preset-grid');
+  const countBadge = document.getElementById('active-payment-count');
+  if (!grid) return;
+
+  if (countBadge) {
+    countBadge.textContent = `${settingsActivePaymentModes.length} Active`;
+  }
+  grid.innerHTML = '';
+
+  PAYMENT_MODE_PRESETS.forEach(item => {
+    const isActive = settingsActivePaymentModes.includes(item.mode);
+    const card = document.createElement('button');
+    card.type = 'button';
+    card.className = `p-2 rounded-xl border flex items-center justify-between transition text-left text-xs ${
+      isActive
+        ? 'bg-blue-600/20 border-blue-500 text-white shadow-sm'
+        : 'bg-slate-800 border-slate-700 text-slate-400 opacity-60 hover:opacity-100 hover:border-slate-600'
+    } ${!isOwner ? 'cursor-not-allowed opacity-80' : ''}`;
+
+    card.innerHTML = `
+      <div class="flex items-center space-x-1.5 min-w-0 pr-1">
+        <span class="text-base flex-shrink-0">${item.icon}</span>
+        <span class="font-medium truncate">${item.label}</span>
+      </div>
+      <span class="w-4 h-4 rounded-full flex items-center justify-center text-[10px] font-bold flex-shrink-0 ${
+        isActive ? 'bg-blue-500 text-white' : 'border border-slate-600 text-transparent'
+      }">✓</span>
+    `;
+
+    card.addEventListener('click', () => {
+      if (!isOwner) {
+        showToast('Only the trip creator can modify payment modes. Tap "Unlock Creator Settings" above.', true);
+        return;
+      }
+      if (settingsActivePaymentModes.includes(item.mode)) {
+        if (settingsActivePaymentModes.length <= 1) {
+          showToast('At least one payment mode must remain active.', true);
+          return;
+        }
+        settingsActivePaymentModes = settingsActivePaymentModes.filter(m => m !== item.mode);
+      } else {
+        settingsActivePaymentModes.push(item.mode);
+      }
+      renderPaymentModePresetsInSettings(true);
+
+      // Auto-save immediately for the active trip
+      const activeTrip = Storage.getActiveTrip();
+      if (activeTrip && activeTrip.id) {
+        Storage.setTripPaymentModes(activeTrip.id, settingsActivePaymentModes);
+        renderPaymentModeChips();
+        if (activeTrip.scriptUrl && activeTrip.sheetId && activeTrip.secret) {
+          SheetsAPI.updateTripConfig(activeTrip, {
+            categories: settingsActiveCategories,
+            paymentModes: settingsActivePaymentModes,
+            baseCurrency: activeTrip.baseCurrency || 'INR'
+          });
+        }
+      }
+    });
+
+    grid.appendChild(card);
   });
 }
 
@@ -521,9 +823,10 @@ function handleCurrencyChange() {
   const label = document.getElementById('exchange-rate-label');
   const rateInput = document.getElementById('exchange-rate-input');
   const preview = document.getElementById('converted-preview');
+  const baseCurrency = getActiveBaseCurrency();
 
   const code = currencySelect.value;
-  if (code === 'INR') {
+  if (code === baseCurrency) {
     container.classList.add('hidden');
     preview.classList.add('hidden');
     rateInput.value = '1.0';
@@ -543,16 +846,17 @@ function updateConvertedPreview() {
   const amountInput = document.getElementById('amount-input');
   const rateInput = document.getElementById('exchange-rate-input');
   const preview = document.getElementById('converted-preview');
+  const baseCurrency = getActiveBaseCurrency();
 
-  if (currencyCode === 'INR') {
+  if (currencyCode === baseCurrency) {
     preview.classList.add('hidden');
     return;
   }
 
   const amount = Number(amountInput.value) || 0;
   const rate = Number(rateInput.value) || 1;
-  const inr = calculateINR(amount, rate);
-  preview.textContent = `≈ ${formatINR(inr)}`;
+  const converted = calculateConvertedAmount(amount, rate);
+  preview.textContent = `≈ ${formatTripSpend(converted)}`;
   preview.classList.remove('hidden');
 }
 
@@ -597,8 +901,9 @@ async function handleFormSubmit(e) {
   }
 
   const currency = currencySelect.value;
-  const exchangeRate = currency === 'INR' ? 1.0 : parseFloat(rateInput.value) || 1.0;
-  const amountInINR = calculateINR(originalAmount, exchangeRate);
+  const baseCurrency = getActiveBaseCurrency();
+  const exchangeRate = currency === baseCurrency ? 1.0 : parseFloat(rateInput.value) || 1.0;
+  const amountInINR = calculateConvertedAmount(originalAmount, exchangeRate);
   const description = descInput.value.trim();
   const date = dateInput.value || new Date().toISOString().substring(0, 10);
 
@@ -670,14 +975,15 @@ function resetExpenseForm() {
   const currencySelect = document.getElementById('currency-select');
   const exchangeContainer = document.getElementById('exchange-rate-container');
   const preview = document.getElementById('converted-preview');
+  const baseCurrency = getActiveBaseCurrency();
 
   // 1. Clear text and numbers
   if (amountInput) amountInput.value = '';
   if (descInput) descInput.value = '';
   if (dateInput) dateInput.value = new Date().toISOString().substring(0, 10);
 
-  // 2. Reset Currency to INR
-  if (currencySelect) currencySelect.value = 'INR';
+  // 2. Reset Currency to Trip Base Currency
+  if (currencySelect) currencySelect.value = baseCurrency;
   if (exchangeContainer) exchangeContainer.classList.add('hidden');
   if (preview) preview.classList.add('hidden');
 
@@ -703,18 +1009,18 @@ function resetExpenseForm() {
   });
 }
 
-function incrementHeroSpend(inrAmount) {
+function incrementHeroSpend(amount) {
   const heroTotalEl = document.getElementById('hero-total-amount');
   const heroCountEl = document.getElementById('hero-total-count');
   const pieCenterEl = document.getElementById('pie-center-amount');
 
   const currentSpend = parseFloat(heroTotalEl.textContent.replace(/[^0-9.-]+/g, '')) || 0;
   const currentCount = parseInt(heroCountEl.textContent) || 0;
-  const newSpend = currentSpend + inrAmount;
+  const newSpend = currentSpend + amount;
 
-  heroTotalEl.textContent = formatINR(newSpend);
+  heroTotalEl.textContent = formatTripSpend(newSpend);
   heroCountEl.textContent = `${currentCount + 1} expenses`;
-  if (pieCenterEl) pieCenterEl.textContent = formatINR(newSpend);
+  if (pieCenterEl) pieCenterEl.textContent = formatTripSpend(newSpend);
 }
 
 /**
@@ -738,6 +1044,27 @@ async function refreshTripData() {
       renderSettingsPaidByList();
     }
 
+    // Synchronize trip configuration (categories, payment modes, base currency) from Google Sheets!
+    if (data && data.config) {
+      let configChanged = false;
+      if (Array.isArray(data.config.categories) && data.config.categories.length > 0) {
+        Storage.setTripCategories(activeTrip.id, data.config.categories);
+        renderCategoryChips();
+      }
+      if (Array.isArray(data.config.paymentModes) && data.config.paymentModes.length > 0) {
+        Storage.setTripPaymentModes(activeTrip.id, data.config.paymentModes);
+        renderPaymentModeChips();
+      }
+      if (data.config.baseCurrency && activeTrip.baseCurrency !== data.config.baseCurrency) {
+        activeTrip.baseCurrency = data.config.baseCurrency;
+        Storage.saveTrip(activeTrip);
+        configChanged = true;
+      }
+      if (configChanged) {
+        renderActiveTrip();
+      }
+    }
+
     showToast('Ledger up to date! ✓');
   } catch (err) {
     console.warn('Could not refresh live data:', err.message);
@@ -756,7 +1083,7 @@ function renderSummaryData(data) {
   if (!data) return;
 
   // Hero Card
-  document.getElementById('hero-total-amount').textContent = formatINR(data.totalSpendINR || 0);
+  document.getElementById('hero-total-amount').textContent = formatTripSpend(data.totalSpendINR || 0);
   document.getElementById('hero-total-count').textContent = `${data.totalCount || 0} expenses`;
 
   // Category Progress Bar & Legend
@@ -802,7 +1129,7 @@ function renderCategoryBreakdown(breakdown = {}, totalSpend = 0) {
   if (barLegend) barLegend.innerHTML = '';
   if (pieSvg) pieSvg.innerHTML = '';
   if (pieLegend) pieLegend.innerHTML = '';
-  if (pieCenterAmount) pieCenterAmount.textContent = formatINR(totalSpend || 0);
+  if (pieCenterAmount) pieCenterAmount.textContent = formatTripSpend(totalSpend || 0);
 
   const categories = Object.keys(breakdown).filter(cat => breakdown[cat] > 0);
   if (categories.length === 0 || totalSpend <= 0) {
@@ -854,7 +1181,7 @@ function renderCategoryBreakdown(breakdown = {}, totalSpend = 0) {
       const seg = document.createElement('div');
       seg.style.width = `${Math.max(2, pct)}%`;
       seg.style.backgroundColor = meta.color;
-      seg.title = `${cat}: ${formatINR(amount)} (${pctDisplay})`;
+      seg.title = `${cat}: ${formatTripSpend(amount)} (${pctDisplay})`;
       bar.appendChild(seg);
     }
 
@@ -883,7 +1210,7 @@ function renderCategoryBreakdown(breakdown = {}, totalSpend = 0) {
       slice.setAttribute('stroke-width', '14');
       slice.setAttribute('stroke-dasharray', `${dashLength.toFixed(2)} ${C.toFixed(2)}`);
       slice.setAttribute('stroke-dashoffset', offset.toFixed(2));
-      slice.innerHTML = `<title>${cat}: ${formatINR(amount)} (${pctDisplay})</title>`;
+      slice.innerHTML = `<title>${cat}: ${formatTripSpend(amount)} (${pctDisplay})</title>`;
       pieSvg.appendChild(slice);
 
       accumulatedRatio += ratio;
@@ -899,7 +1226,7 @@ function renderCategoryBreakdown(breakdown = {}, totalSpend = 0) {
           <span class="truncate text-slate-300 font-medium">${meta.icon} ${cat}</span>
         </div>
         <div class="flex items-center space-x-2 flex-shrink-0">
-          <span class="font-semibold text-white">${formatINR(amount)}</span>
+          <span class="font-semibold text-white">${formatTripSpend(amount)}</span>
           <span class="text-[10px] text-slate-400 font-mono w-8 text-right">${pctDisplay}</span>
         </div>
       `;
@@ -964,7 +1291,7 @@ function renderRecentTransactionsList() {
 
       <div class="text-right flex-shrink-0 flex flex-col items-end">
         <div class="text-sm font-extrabold text-white flex items-center space-x-1.5">
-          <span>${formatINR(item.amountInINR)}</span>
+          <span>${formatTripSpend(item.amountInINR)}</span>
           ${syncBadge}
           ${(isOwner && item.status !== 'pending' && item.status !== 'offline') ? `
             <button type="button" class="del-txn-btn ml-1 p-1 text-slate-500 hover:text-red-400 active:scale-95 transition rounded" title="Delete expense from Sheet">
@@ -974,7 +1301,7 @@ function renderRecentTransactionsList() {
             </button>
           ` : ''}
         </div>
-        ${(item.currency && item.currency !== 'INR' && item.originalAmount) ? `
+        ${(item.currency && item.currency !== getActiveBaseCurrency() && item.originalAmount) ? `
           <div class="text-[10px] text-slate-400 mt-0.5">
             ${formatOriginalCurrency(item.originalAmount, item.currency)}
           </div>
@@ -1021,18 +1348,18 @@ async function handleDeleteTransaction(txnId, amountInINR) {
   }
 }
 
-function decrementHeroSpend(inrAmount) {
+function decrementHeroSpend(amount) {
   const heroTotalEl = document.getElementById('hero-total-amount');
   const heroCountEl = document.getElementById('hero-total-count');
   const pieCenterEl = document.getElementById('pie-center-amount');
 
   const currentSpend = parseFloat(heroTotalEl.textContent.replace(/[^0-9.-]+/g, '')) || 0;
   const currentCount = parseInt(heroCountEl.textContent) || 0;
-  const newSpend = Math.max(0, currentSpend - inrAmount);
+  const newSpend = Math.max(0, currentSpend - amount);
 
-  heroTotalEl.textContent = formatINR(newSpend);
+  heroTotalEl.textContent = formatTripSpend(newSpend);
   heroCountEl.textContent = `${Math.max(0, currentCount - 1)} expenses`;
-  if (pieCenterEl) pieCenterEl.textContent = formatINR(newSpend);
+  if (pieCenterEl) pieCenterEl.textContent = formatTripSpend(newSpend);
 }
 
 /**
@@ -1081,11 +1408,12 @@ async function handleSyncOfflineQueue() {
 /**
  * 9. Settings Modal Management, Permissions & Trip Editing
  */
-function openSettingsModal(targetTripId = null) {
+function openSettingsModal(targetTripId = null, scrollToSection = null) {
   const modal = document.getElementById('settings-modal');
   const titleEl = document.getElementById('settings-modal-title');
   const idInput = document.getElementById('settings-trip-id');
   const nameInput = document.getElementById('settings-trip-name');
+  const baseCurrencySelect = document.getElementById('settings-base-currency');
   const sheetInput = document.getElementById('settings-sheet-id');
   const scriptInput = document.getElementById('settings-script-url');
   const secretInput = document.getElementById('settings-secret');
@@ -1093,6 +1421,8 @@ function openSettingsModal(targetTripId = null) {
   const saveBtn = document.getElementById('save-trip-settings-btn');
   const warningEl = document.getElementById('shared-trip-warning');
   const roleBadge = document.getElementById('settings-role-badge');
+  const categoriesSection = document.getElementById('settings-categories-section');
+  const paymentModesSection = document.getElementById('settings-payment-modes-section');
 
   // Ensure password field is dotted by default
   secretInput.type = 'password';
@@ -1105,20 +1435,26 @@ function openSettingsModal(targetTripId = null) {
     titleEl.textContent = 'Create New Trip';
     idInput.value = '';
     nameInput.value = '';
+    if (baseCurrencySelect) baseCurrencySelect.value = 'INR';
     sheetInput.value = '';
     scriptInput.value = '';
     secretInput.value = '';
     deleteBtn.classList.add('hidden');
+    settingsActiveCategories = [...Storage.DEFAULT_CATEGORIES];
+    settingsActivePaymentModes = [...Storage.DEFAULT_PAYMENT_MODES];
   } else if (typeof targetTripId === 'string' && targetTripId.trim()) {
     // Mode: Edit specific trip by ID
     tripToEdit = Storage.getTripById(targetTripId);
     titleEl.textContent = `Trip: ${tripToEdit ? tripToEdit.name : 'Settings'}`;
     idInput.value = tripToEdit ? tripToEdit.id : '';
     nameInput.value = tripToEdit ? tripToEdit.name : '';
+    if (baseCurrencySelect) baseCurrencySelect.value = (tripToEdit && tripToEdit.baseCurrency) ? tripToEdit.baseCurrency : 'INR';
     sheetInput.value = tripToEdit ? tripToEdit.sheetId : '';
     scriptInput.value = tripToEdit ? tripToEdit.scriptUrl : '';
     secretInput.value = tripToEdit ? tripToEdit.secret : '';
     deleteBtn.classList.remove('hidden');
+    settingsActiveCategories = tripToEdit ? [...Storage.getTripCategories(tripToEdit.id)] : [...Storage.DEFAULT_CATEGORIES];
+    settingsActivePaymentModes = tripToEdit ? [...Storage.getTripPaymentModes(tripToEdit.id)] : [...Storage.DEFAULT_PAYMENT_MODES];
   } else {
     // Mode: Edit current active trip
     tripToEdit = Storage.getActiveTrip();
@@ -1126,18 +1462,24 @@ function openSettingsModal(targetTripId = null) {
       titleEl.textContent = `Trip: ${tripToEdit.name}`;
       idInput.value = tripToEdit.id;
       nameInput.value = tripToEdit.name;
+      if (baseCurrencySelect) baseCurrencySelect.value = tripToEdit.baseCurrency || 'INR';
       sheetInput.value = tripToEdit.sheetId;
       scriptInput.value = tripToEdit.scriptUrl;
       secretInput.value = tripToEdit.secret;
       deleteBtn.classList.remove('hidden');
+      settingsActiveCategories = [...Storage.getTripCategories(tripToEdit.id)];
+      settingsActivePaymentModes = [...Storage.getTripPaymentModes(tripToEdit.id)];
     } else {
       titleEl.textContent = 'Configure New Trip';
       idInput.value = '';
       nameInput.value = '';
+      if (baseCurrencySelect) baseCurrencySelect.value = 'INR';
       sheetInput.value = '';
       scriptInput.value = '';
       secretInput.value = '';
       deleteBtn.classList.add('hidden');
+      settingsActiveCategories = [...Storage.DEFAULT_CATEGORIES];
+      settingsActivePaymentModes = [...Storage.DEFAULT_PAYMENT_MODES];
     }
   }
 
@@ -1154,14 +1496,23 @@ function openSettingsModal(targetTripId = null) {
     }
     if (creatorOnlyFields) creatorOnlyFields.classList.remove('hidden');
     if (shareCard) shareCard.classList.remove('hidden');
+    if (categoriesSection) categoriesSection.classList.remove('hidden');
+    if (paymentModesSection) paymentModesSection.classList.remove('hidden');
 
     nameInput.disabled = false;
     sheetInput.disabled = false;
     scriptInput.disabled = false;
     secretInput.disabled = false;
+    if (baseCurrencySelect) {
+      baseCurrencySelect.disabled = false;
+      baseCurrencySelect.classList.remove('opacity-60', 'cursor-not-allowed');
+    }
     [nameInput, sheetInput, scriptInput, secretInput].forEach(inp => inp.classList.remove('opacity-60', 'cursor-not-allowed'));
     if (saveBtn) saveBtn.classList.remove('hidden');
     if (deleteBtn) deleteBtn.textContent = 'Delete This Trip from Device';
+
+    renderCategoryPresetsInSettings(true);
+    renderPaymentModePresetsInSettings(true);
   } else {
     // Member Mode: Restrict core settings from accidental tampering & hide Sheet ID / Script URL!
     if (warningEl) warningEl.classList.remove('hidden');
@@ -1171,6 +1522,9 @@ function openSettingsModal(targetTripId = null) {
     }
     if (creatorOnlyFields) creatorOnlyFields.classList.add('hidden');
     if (shareCard) shareCard.classList.add('hidden');
+    // Categories & payment modes customization is Creator-Only: completely hidden in Member Mode
+    if (categoriesSection) categoriesSection.classList.add('hidden');
+    if (paymentModesSection) paymentModesSection.classList.add('hidden');
 
     // Clear inputs to prevent DOM inspection from revealing IDs
     sheetInput.value = '';
@@ -1181,6 +1535,10 @@ function openSettingsModal(targetTripId = null) {
     sheetInput.disabled = true;
     scriptInput.disabled = true;
     secretInput.disabled = true;
+    if (baseCurrencySelect) {
+      baseCurrencySelect.disabled = true;
+      baseCurrencySelect.classList.add('opacity-60', 'cursor-not-allowed');
+    }
     [nameInput, sheetInput, scriptInput, secretInput].forEach(inp => inp.classList.add('opacity-60', 'cursor-not-allowed'));
     if (saveBtn) saveBtn.classList.add('hidden');
     if (deleteBtn) deleteBtn.textContent = 'Leave / Remove Trip from Device';
@@ -1190,6 +1548,17 @@ function openSettingsModal(targetTripId = null) {
   renderSettingsPaidByList();
 
   modal.classList.remove('hidden');
+
+  // Smooth scroll to requested section if opened from quick customize button
+  if (scrollToSection === 'categories' && categoriesSection) {
+    setTimeout(() => {
+      categoriesSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 80);
+  } else if (scrollToSection === 'payment' && paymentModesSection) {
+    setTimeout(() => {
+      paymentModesSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 80);
+  }
 }
 
 function handleUnlockOwnerMode() {
@@ -1218,6 +1587,7 @@ function handleSaveSettings(e) {
 
   const id = document.getElementById('settings-trip-id').value.trim();
   const name = document.getElementById('settings-trip-name').value.trim();
+  const baseCurrency = (document.getElementById('settings-base-currency')?.value || 'INR').trim();
   const sheetId = document.getElementById('settings-sheet-id').value.trim();
   const scriptUrl = document.getElementById('settings-script-url').value.trim();
   const secret = document.getElementById('settings-secret').value.trim();
@@ -1238,6 +1608,9 @@ function handleSaveSettings(e) {
   const tripData = {
     id: id || undefined,
     name: name,
+    baseCurrency: baseCurrency,
+    categories: settingsActiveCategories,
+    paymentModes: settingsActivePaymentModes,
     sheetId: sheetId,
     scriptUrl: scriptUrl,
     secret: secret,
@@ -1248,6 +1621,15 @@ function handleSaveSettings(e) {
   closeSettingsModal();
   renderActiveTrip();
   showToast(`Trip "${saved.name}" saved! ✓`);
+
+  // Persist configuration to Google Sheets so all companion/family members sync automatically
+  if (saved.scriptUrl && saved.sheetId && saved.secret) {
+    SheetsAPI.updateTripConfig(saved, {
+      baseCurrency: saved.baseCurrency,
+      categories: saved.categories,
+      paymentModes: saved.paymentModes
+    });
+  }
 }
 
 function handleDeleteActiveTrip() {
@@ -1329,6 +1711,7 @@ function openTripModal() {
         <div class="cursor-pointer flex-1 min-w-0 mr-2 trip-select-area">
           <div class="flex items-center space-x-1.5">
             <span class="text-sm font-bold truncate">${trip.name}</span>
+            <span class="text-[10px] px-1.5 py-0.2 rounded bg-slate-700/80 text-slate-300 font-mono font-semibold">${trip.baseCurrency || 'INR'}</span>
             ${isActive ? '<span class="text-xs text-blue-400 font-bold">● Active</span>' : ''}
             ${!isOwner ? '<span class="text-[10px] px-1.5 py-0.2 rounded bg-amber-500/20 text-amber-300 font-medium">Shared</span>' : ''}
           </div>

@@ -4,10 +4,11 @@
 [![Google Sheets](https://img.shields.io/badge/Google_Sheets-Direct_Cloud_Database-34A853?logo=googlesheets&logoColor=white)](https://sheets.new)
 [![Google Apps Script](https://img.shields.io/badge/Google_Apps_Script-Serverless_API_Bridge-4285F4?logo=google&logoColor=white)](https://script.google.com)
 [![PWA Ready](https://img.shields.io/badge/PWA-Offline_Ready-5A67D8?logo=pwa&logoColor=white)](https://developer.mozilla.org/en-US/docs/Web/Progressive_web_apps)
-[![Base Currency](https://img.shields.io/badge/Base_Currency-INR_(₹)-10B981)](#-multi-currency-with-inr--as-base)
+[![Base Currency](https://img.shields.io/badge/Base_Currency-Configurable_(INR_Default)-10B981)](#-configurable-base-currency--multi-currency-engine)
+[![Categories](https://img.shields.io/badge/Categories-16_Presets_Customizable-blue)](#-customizable-trip-categories--payment-modes)
 [![Test Suite](https://img.shields.io/badge/Unit_Tests-100%25_Passing-brightgreen)](test/core.test.js)
 
-A lightweight, mobile-first, privacy-focused Progressive Web Application (PWA) designed for tracking vacation expenses in real-time. It connects directly to your private Google Sheets using a Google Apps Script Web App bridge, supporting multiple foreign currencies (converting to Indian Rupee ₹), offline queueing with auto-sync, one-tap family share links with permission locks, and interactive visual breakdown charts (Bar & Donut).
+A lightweight, mobile-first, privacy-focused Progressive Web Application (PWA) designed for tracking vacation expenses in real-time. It connects directly to your private Google Sheets using a Google Apps Script Web App bridge, supporting configurable trip base currencies (defaulting to Indian Rupee ₹), 16 customizable travel expense categories, customizable payment modes, foreign currency conversion, offline queueing with auto-sync, one-tap family share links with permission locks, and interactive visual breakdown charts (Bar & Donut).
 
 ---
 
@@ -34,17 +35,25 @@ Use these direct links to access the required cloud consoles and services:
   * `doGet`: Automatically calculates total trip spend in INR (₹), expense counts, category distribution, and displays recent transactions.
   * `doPost`: Appends new expenses with Google Apps Script `LockService` write concurrency locking and idempotent deduplication to prevent duplicate records during spotty roaming connections.
 * **Creator (Owner) vs. Member Security Model:**
-  * **Creator Mode:** The user who sets up the trip has full control to edit credentials, configure Sheet IDs, change Script URLs, and delete mistaken entries.
-  * **Member Mode:** Companions who open the trip via a Family Share Link get restricted Member access. They can log expenses and select synced tags, but configuration inputs (Sheet ID, Script URL, Passcode) are locked to prevent tampering.
+  * **Creator Mode:** The user who sets up the trip has full control to edit credentials, configure Sheet IDs, change Script URLs, pick base currencies, toggle active categories and payment modes, and delete mistaken entries.
+  * **Member Mode:** Companions who open the trip via a Family Share Link get restricted Member access. They can log expenses and select synced tags, but configuration inputs (Sheet ID, Script URL, Passcode, and `⚙️ Customize` controls) are hidden/locked to prevent tampering.
   * **Passcode Unlock:** The creator can unlock full Owner Mode on any new or secondary device by verifying the master passcode.
-* **Multi-Tab Synchronization (`Expenses` & `Participants`):**
-  * Custom tags are persisted and synchronized across all family members' devices in real time.
+* **Three-Tab Cloud Synchronization (`Expenses`, `Participants`, `Config`):**
+  * `Expenses`: Real-time transaction ledger.
+  * `Participants`: Custom "Paid By" tags persisted and synced across all devices.
+  * `Config`: Active categories, payment modes, and base currency synced directly through Google Sheets so all companion devices stay up to date automatically without needing to re-share the join link.
 * **Visualizations (Bar & Pie / Donut Chart):**
   * Clean, minimal hero card with the category distribution hidden by default.
   * One-tap expand/collapse with state saved in `localStorage`.
-* **Multi-Currency with Base INR (₹):**
-  * Built-in support for INR (₹), USD ($), EUR (€), GBP (£), AED (د.إ), THB (฿), SGD (S$), JPY (¥), VND (₫), IDR (Rp), plus Custom rates.
-  * Live conversion preview and client-side rate caching.
+* **Configurable Base Currency & Multi-Currency Engine:**
+  * Creators can choose the trip's base currency on creation or in settings (defaulting to Indian Rupee ₹ / `INR`, customizable to `USD`, `EUR`, `GBP`, `AED`, `THB`, `SGD`, `JPY`, `VND`, `IDR`, etc.).
+  * All ledger totals, hero spend, breakdown progress bars, donut charts, and transaction cards format authentically in the selected base currency.
+  * Live exchange rate conversion preview with client-side rate caching.
+* **Customizable Trip Categories & Payment Modes:**
+  * Rich catalog of 16 travel categories: Food & Dining, Travel Tickets, Fuel & Tolls, Stay & Hotel, Tickets & Activities, Shopping, Local Transport / Cabs, Public Transport, Souvenirs, Groceries & Supplies, Drinks & Cafe, Pharmacy / Medical, Rentals & Gear, SIM & Internet, Visa & Fees, General / Other.
+  * 9 preset payment modes: Cash, UPI / GPay, Credit Card, Debit Card, Forex Card, Apple Pay / Google Pay, Net Banking / Wire, Transit Card, Other.
+  * Sleek, compact 3-column category grid (~44px touch targets) on mobile with instant auto-save upon toggling presets in Settings.
+  * Quick `⚙️ Customize` shortcuts directly next to Category and Payment Mode headers for trip creators.
 * **Offline-First Resilience:**
   * Service Worker (`sw.js`) caches all application shell assets for instant offline booting.
   * Expenses logged without cell service are stored in a local queue and automatically flushed to Google Sheets when internet connectivity returns.
@@ -88,7 +97,7 @@ xpense-tracker/
    ```text
    https://docs.google.com/spreadsheets/d/<COPY_THIS_SHEET_ID_HERE>/edit
    ```
-   *(You do not need to create columns or tabs manually — the script initializes the `Expenses` and `Participants` tabs on first use).*
+   *(You do not need to create columns or tabs manually — the script initializes the `Expenses`, `Participants`, and `Config` tabs on first use).*
 
 ---
 
@@ -232,6 +241,15 @@ Persisted list of active "Paid By" tags:
 | :---: | :--- | :--- |
 | **A** | `Participant Tag` | Unique tag name (e.g. `Self`, `Dad`, `Partner`) |
 | **B** | `Created At` | ISO timestamp of when the tag was added |
+
+### 3. `Config` Tab
+Persisted trip settings (base currency, active categories, payment modes) automatically synced to all companion devices in real-time:
+
+| Col | Header | Description |
+| :---: | :--- | :--- |
+| **A** | `Setting Key` | Key name (`baseCurrency`, `categories`, `paymentModes`) |
+| **B** | `Setting Value` | Value string or JSON-serialized array of active options |
+| **C** | `Updated At` | ISO timestamp of the last configuration update |
 
 ---
 

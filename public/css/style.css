@@ -56,15 +56,15 @@ input, textarea, [data-selectable="true"] {
 }
 
 /* Category & Paid By Pills */
-.chip-btn {
+.chip-btn, .category-pill, .payment-pill {
   transition: all 0.15s ease-in-out;
 }
 
-.chip-btn:active {
+.chip-btn:active, .category-pill:active, .payment-pill:active {
   transform: scale(0.96);
 }
 
-.chip-btn.active {
+.chip-btn.active, .category-pill.active, .payment-pill.active {
   box-shadow: 0 0 0 2px #3b82f6, 0 4px 6px -1px rgba(59, 130, 246, 0.2);
 }
 

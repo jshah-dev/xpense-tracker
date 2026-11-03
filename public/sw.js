@@ -1,4 +1,4 @@
-const CACHE_NAME = 'xpense-tracker-v15';
+const CACHE_NAME = 'xpense-tracker-v20';
 const STATIC_ASSETS = [
   '/',
   '/index.html',

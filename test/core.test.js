@@ -1,5 +1,5 @@
 const assert = require('assert');
-const { formatINR, calculateINR, getCurrency, CURRENCIES } = require('../public/js/currency.js');
+const { formatINR, calculateINR, formatCurrency, calculateConvertedAmount, getCurrency, CURRENCIES } = require('../public/js/currency.js');
 
 // Mock localStorage for Node.js environment
 const mockStorageData = {};
@@ -10,7 +10,7 @@ global.localStorage = {
   clear: () => { for (const k in mockStorageData) delete mockStorageData[k]; }
 };
 
-const { Storage, StorageKeys, DEFAULT_PAID_BY } = require('../public/js/storage.js');
+const { Storage, StorageKeys, DEFAULT_PAID_BY, DEFAULT_CATEGORIES, DEFAULT_PAYMENT_MODES } = require('../public/js/storage.js');
 
 console.log('--- Running Core Unit & Integration Tests ---');
 
@@ -178,5 +178,60 @@ assert.ok(decodedVerbose);
 assert.strictEqual(decodedVerbose.sheetId, '1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgvE2upms');
 assert.strictEqual(decodedVerbose.name, 'Legacy Vacation');
 assert.strictEqual(decodedVerbose.secret, 'OldPasscode');
+
+// 8. Base Currency, Trip Categories & Payment Modes Customization
+console.log('8. Testing Customizable Base Currency, Categories & Payment Modes...');
+localStorage.clear();
+
+// Currency formatting across world currencies
+assert.ok(formatCurrency(1500, 'INR').includes('1,500') || formatCurrency(1500, 'INR').includes('1500'));
+assert.ok(formatCurrency(125.5, 'USD').includes('125.50'));
+assert.ok(formatCurrency(250, 'EUR').includes('€') && (formatCurrency(250, 'EUR').includes('250,00') || formatCurrency(250, 'EUR').includes('250.00')));
+const jpyFormatted = formatCurrency(15000, 'JPY');
+assert.ok(jpyFormatted.includes('15,000') || jpyFormatted.includes('15000'));
+assert.ok(!jpyFormatted.includes('.00'), 'JPY should not have decimal places');
+assert.strictEqual(calculateConvertedAmount(50, 83.5), 4175.0);
+
+// Default categories and payment modes
+const tripA = 'trip_cust_001';
+assert.deepStrictEqual(Storage.getTripCategories(tripA), DEFAULT_CATEGORIES);
+assert.deepStrictEqual(Storage.getTripPaymentModes(tripA), DEFAULT_PAYMENT_MODES);
+
+// Customize categories for trip
+const customCats = ['Food & Dining', 'Public Transport', 'Souvenirs', 'Drinks & Cafe'];
+Storage.setTripCategories(tripA, customCats);
+assert.deepStrictEqual(Storage.getTripCategories(tripA), customCats);
+
+// Customize payment modes for trip
+const customModes = ['Cash', 'Credit Card', 'Transit Card', 'Apple Pay / Google Pay'];
+Storage.setTripPaymentModes(tripA, customModes);
+assert.deepStrictEqual(Storage.getTripPaymentModes(tripA), customModes);
+
+// Saving trip with baseCurrency, categories, and paymentModes
+const fullConfigTrip = Storage.saveTrip({
+  name: 'Japan Autumn 🍁 2026',
+  sheetId: '1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgvE2upms',
+  scriptUrl: 'https://script.google.com/macros/s/AKfycbxyz123/exec',
+  secret: 'TokyoSecret2026',
+  baseCurrency: 'JPY',
+  categories: customCats,
+  paymentModes: customModes,
+  isOwner: true
+});
+
+assert.strictEqual(fullConfigTrip.baseCurrency, 'JPY');
+assert.deepStrictEqual(Storage.getTripCategories(fullConfigTrip.id), customCats);
+assert.deepStrictEqual(Storage.getTripPaymentModes(fullConfigTrip.id), customModes);
+
+// Encode & decode share link payload with base currency, categories, and payment modes
+const shareToken = Storage.encodeSharePayload(fullConfigTrip);
+assert.ok(shareToken && shareToken.length > 20);
+
+const decodedShared = Storage.decodeSharePayload(shareToken);
+assert.ok(decodedShared);
+assert.strictEqual(decodedShared.name, 'Japan Autumn 🍁 2026');
+assert.strictEqual(decodedShared.baseCurrency, 'JPY');
+assert.deepStrictEqual(decodedShared.categories, customCats);
+assert.deepStrictEqual(decodedShared.paymentModes, customModes);
 
 console.log('\nAll Unit & Integration Tests Passed Successfully! ✅');

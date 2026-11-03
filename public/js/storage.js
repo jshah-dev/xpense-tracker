@@ -10,11 +10,33 @@ const StorageKeys = {
   EXCHANGE_RATES: 'travel_exchange_rates',
   PAID_BY_OPTIONS: 'travel_paid_by_options',
   SUMMARY_CACHE_PREFIX: 'travel_summary_',
-  PAID_BY_TRIP_PREFIX: 'travel_paid_by_'
+  PAID_BY_TRIP_PREFIX: 'travel_paid_by_',
+  CATEGORIES_TRIP_PREFIX: 'travel_categories_',
+  PAYMENT_MODES_TRIP_PREFIX: 'travel_payment_modes_'
 };
 
 // By default, only 'Self' tag
 const DEFAULT_PAID_BY = ['Self'];
+
+// Default Categories for a trip (7 core presets)
+const DEFAULT_CATEGORIES = [
+  'Food & Dining',
+  'Travel Tickets',
+  'Fuel & Tolls',
+  'Stay & Hotel',
+  'Tickets & Activities',
+  'Shopping',
+  'General / Other'
+];
+
+// Default Payment Modes for a trip (5 core presets)
+const DEFAULT_PAYMENT_MODES = [
+  'Cash',
+  'UPI / GPay',
+  'Credit Card',
+  'Debit Card',
+  'Forex Card'
+];
 
 const Storage = {
   /**
@@ -97,12 +119,34 @@ const Storage = {
       isOwner = !!existingTrip.isOwner;
     }
 
+    // Base currency (defaults to INR if not specified)
+    const baseCurrency = (tripData.baseCurrency || (existingTrip && existingTrip.baseCurrency) || 'INR').trim().toUpperCase();
+
+    // Active categories
+    let categories = DEFAULT_CATEGORIES;
+    if (Array.isArray(tripData.categories) && tripData.categories.length > 0) {
+      categories = [...new Set(tripData.categories.map(c => String(c).trim()).filter(Boolean))];
+    } else if (existingTrip && Array.isArray(existingTrip.categories) && existingTrip.categories.length > 0) {
+      categories = existingTrip.categories;
+    }
+
+    // Active payment modes
+    let paymentModes = DEFAULT_PAYMENT_MODES;
+    if (Array.isArray(tripData.paymentModes) && tripData.paymentModes.length > 0) {
+      paymentModes = [...new Set(tripData.paymentModes.map(m => String(m).trim()).filter(Boolean))];
+    } else if (existingTrip && Array.isArray(existingTrip.paymentModes) && existingTrip.paymentModes.length > 0) {
+      paymentModes = existingTrip.paymentModes;
+    }
+
     const updatedTrip = {
       id: id,
       name: (tripData.name || 'My Vacation').trim(),
       sheetId: cleanSheetId,
       scriptUrl: (tripData.scriptUrl || '').trim(),
       secret: (tripData.secret || '').trim(),
+      baseCurrency: baseCurrency,
+      categories: categories,
+      paymentModes: paymentModes,
       isOwner: isOwner,
       updatedAt: new Date().toISOString()
     };
@@ -231,6 +275,80 @@ const Storage = {
     return list;
   },
 
+  // --- Per-Trip Categories Management ---
+
+  getTripCategories(tripId = null) {
+    if (tripId) {
+      const trip = this.getTripById(tripId);
+      if (trip && Array.isArray(trip.categories) && trip.categories.length > 0) {
+        return trip.categories;
+      }
+      const tripSaved = this._getJSON(`${StorageKeys.CATEGORIES_TRIP_PREFIX}${tripId}`, null);
+      if (tripSaved && Array.isArray(tripSaved) && tripSaved.length > 0) {
+        return tripSaved;
+      }
+    }
+    return DEFAULT_CATEGORIES;
+  },
+
+  setTripCategories(tripId, categories) {
+    if (!Array.isArray(categories) || categories.length === 0) return DEFAULT_CATEGORIES;
+    const clean = [...new Set(categories.map(c => String(c).trim()).filter(Boolean))];
+    const finalCategories = clean.length > 0 ? clean : DEFAULT_CATEGORIES;
+
+    if (tripId) {
+      this._setJSON(`${StorageKeys.CATEGORIES_TRIP_PREFIX}${tripId}`, finalCategories);
+      const trip = this.getTripById(tripId);
+      if (trip) {
+        trip.categories = finalCategories;
+        const trips = this.getTrips();
+        const idx = trips.findIndex(t => t.id === tripId);
+        if (idx >= 0) {
+          trips[idx].categories = finalCategories;
+          this._setJSON(StorageKeys.TRIPS, trips);
+        }
+      }
+    }
+    return finalCategories;
+  },
+
+  // --- Per-Trip Payment Modes Management ---
+
+  getTripPaymentModes(tripId = null) {
+    if (tripId) {
+      const trip = this.getTripById(tripId);
+      if (trip && Array.isArray(trip.paymentModes) && trip.paymentModes.length > 0) {
+        return trip.paymentModes;
+      }
+      const tripSaved = this._getJSON(`${StorageKeys.PAYMENT_MODES_TRIP_PREFIX}${tripId}`, null);
+      if (tripSaved && Array.isArray(tripSaved) && tripSaved.length > 0) {
+        return tripSaved;
+      }
+    }
+    return DEFAULT_PAYMENT_MODES;
+  },
+
+  setTripPaymentModes(tripId, paymentModes) {
+    if (!Array.isArray(paymentModes) || paymentModes.length === 0) return DEFAULT_PAYMENT_MODES;
+    const clean = [...new Set(paymentModes.map(m => String(m).trim()).filter(Boolean))];
+    const finalModes = clean.length > 0 ? clean : DEFAULT_PAYMENT_MODES;
+
+    if (tripId) {
+      this._setJSON(`${StorageKeys.PAYMENT_MODES_TRIP_PREFIX}${tripId}`, finalModes);
+      const trip = this.getTripById(tripId);
+      if (trip) {
+        trip.paymentModes = finalModes;
+        const trips = this.getTrips();
+        const idx = trips.findIndex(t => t.id === tripId);
+        if (idx >= 0) {
+          trips[idx].paymentModes = finalModes;
+          this._setJSON(StorageKeys.TRIPS, trips);
+        }
+      }
+    }
+    return finalModes;
+  },
+
   // --- Offline Queue ---
 
   getOfflineQueue() {
@@ -270,7 +388,10 @@ const Storage = {
     const payload = {
       s: this.extractSheetId(trip.sheetId),
       t: (trip.name || 'Shared Vacation').trim(),
-      k: (trip.secret || '').trim()
+      k: (trip.secret || '').trim(),
+      c: (trip.baseCurrency || 'INR').trim().toUpperCase(),
+      cat: Array.isArray(trip.categories) ? trip.categories : DEFAULT_CATEGORIES,
+      m: Array.isArray(trip.paymentModes) ? trip.paymentModes : DEFAULT_PAYMENT_MODES
     };
     if (trip.scriptUrl) {
       payload.u = trip.scriptUrl.trim();
@@ -310,15 +431,22 @@ const Storage = {
       const data = JSON.parse(jsonStr);
       if (!data || typeof data !== 'object') return null;
 
-      // Support compact keys (s, t, k, u) and verbose keys (sheet, trip, key, script)
+      // Support compact keys (s, t, k, u, c, cat, m) and verbose keys
       const sheetId = data.s || data.sheet || data.sheetId;
       if (!sheetId) return null;
+
+      const baseCurrency = (data.c || data.baseCurrency || 'INR').trim().toUpperCase();
+      const categories = Array.isArray(data.cat) ? data.cat : (Array.isArray(data.categories) ? data.categories : DEFAULT_CATEGORIES);
+      const paymentModes = Array.isArray(data.m) ? data.m : (Array.isArray(data.paymentModes) ? data.paymentModes : DEFAULT_PAYMENT_MODES);
 
       return {
         sheetId: this.extractSheetId(sheetId),
         name: data.t || data.trip || data.name || 'Shared Vacation',
         secret: data.k || data.key || data.secret || '',
-        scriptUrl: data.u || data.script || data.scriptUrl || ''
+        scriptUrl: data.u || data.script || data.scriptUrl || '',
+        baseCurrency: baseCurrency,
+        categories: categories,
+        paymentModes: paymentModes
       };
     } catch (err) {
       console.debug('Failed to decode share payload:', err.message || err);
@@ -329,5 +457,11 @@ const Storage = {
 
 // Export for module/browser
 if (typeof module !== 'undefined' && module.exports) {
-  module.exports = { Storage, StorageKeys, DEFAULT_PAID_BY };
+  module.exports = {
+    Storage,
+    StorageKeys,
+    DEFAULT_PAID_BY,
+    DEFAULT_CATEGORIES,
+    DEFAULT_PAYMENT_MODES
+  };
 }

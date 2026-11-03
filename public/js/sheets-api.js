@@ -209,6 +209,36 @@ const SheetsAPI = {
   },
 
   /**
+   * Synchronizes trip configuration (categories, payment modes, base currency) to Google Sheets "Config" tab
+   */
+  async updateTripConfig(trip, config) {
+    if (!trip || !trip.scriptUrl || !trip.sheetId || !trip.secret) return;
+
+    const payload = {
+      action: 'updateConfig',
+      secret: trip.secret,
+      sheetId: trip.sheetId,
+      config: config
+    };
+
+    try {
+      const response = await fetch(trip.scriptUrl, {
+        method: 'POST',
+        mode: 'cors',
+        redirect: 'follow',
+        headers: {
+          'Content-Type': 'text/plain;charset=utf-8'
+        },
+        body: JSON.stringify(payload)
+      });
+      const data = await response.json();
+      return data;
+    } catch (err) {
+      console.warn('Could not sync trip config to Google Sheets:', err);
+    }
+  },
+
+  /**
    * Deletes an expense row from Google Sheets by transaction ID
    */
   async deleteExpense(trip, transactionId) {

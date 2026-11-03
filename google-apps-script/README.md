@@ -64,9 +64,10 @@ To secure your Google Sheets from unauthorized writes and reads:
 
 ## 4. Google Sheet Structure (Automatic Multi-Tab)
 
-When you create a blank Google Sheet, the script automatically manages two dedicated tabs:
+When you create a blank Google Sheet, the script automatically manages three dedicated tabs:
 1. **`Expenses` (or Sheet 1):** The expense ledger with 11 columns (`Transaction ID`, `Date`, `Paid By`, `Category`, `Description`, `Original Amount`, `Currency`, `Exchange Rate`, `Amount (INR)`, `Payment Mode`, `Logged At`).
 2. **`Participants`:** Automatically stores all active "Paid By" tags (e.g. `Self`, `Dad`, `Partner`) so they are **persisted and synchronized in real-time across all family members' devices**!
+3. **`Config`:** Automatically stores active categories, active payment modes, and base currency so any category or payment mode changes made by the creator **automatically synchronize to all family members' devices** without needing to re-share the link!
 
 ---
 
