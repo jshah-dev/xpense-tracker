@@ -1,0 +1,565 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full bg-slate-900 text-slate-100">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="theme-color" content="#2563eb">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="XPense">
+  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+  <link rel="icon" type="image/x-icon" href="/favicon.ico">
+  <link rel="icon" type="image/svg+xml" href="assets/icons/favicon.svg">
+  <link rel="manifest" href="manifest.json">
+  <title>Travel Expense Tracker</title>
+  <!-- Tailwind CSS via CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="min-h-full flex flex-col justify-between selection:bg-blue-600 selection:text-white">
+
+  <!-- Main Container -->
+  <div class="max-w-md w-full mx-auto flex-1 flex flex-col px-4 py-3">
+
+    <!-- Top App Bar -->
+    <header class="flex items-center justify-between pb-3 border-b border-slate-800">
+      <div class="flex items-center space-x-2.5">
+        <!-- App Brand Logo -->
+        <div class="w-9 h-9 rounded-xl overflow-hidden flex items-center justify-center shadow-md flex-shrink-0" title="XPense Tracker">
+          <img src="assets/icons/icon-192.png" alt="XPense Logo" class="w-full h-full object-cover" />
+        </div>
+        <!-- Trip Selector Dropdown & Edit Button -->
+        <div class="flex items-center space-x-1 min-w-0">
+          <button id="trip-selector-btn" class="flex items-center space-x-1 text-left font-bold text-base text-slate-100 hover:text-blue-400 focus:outline-none truncate max-w-[150px] sm:max-w-[180px]">
+            <span id="current-trip-name" class="truncate">Select Trip</span>
+            <svg class="w-4 h-4 text-slate-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+            </svg>
+          </button>
+          <!-- Quick Edit Current Trip Button -->
+          <button id="quick-edit-trip-btn" class="w-7 h-7 rounded-lg bg-slate-800/80 hover:bg-slate-700 flex items-center justify-center text-slate-400 hover:text-slate-200 transition flex-shrink-0" title="Edit Current Trip Settings">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <div class="flex items-center space-x-2">
+        <!-- Live Refresh Button -->
+        <button id="refresh-btn" class="w-10 h-10 rounded-full bg-slate-800 hover:bg-slate-700 flex items-center justify-center text-slate-300 active:scale-95 transition" title="Refresh Live Spend">
+          <svg id="refresh-icon" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+          </svg>
+        </button>
+        <!-- Settings Gear Button -->
+        <button id="settings-btn" class="w-10 h-10 rounded-full bg-slate-800 hover:bg-slate-700 flex items-center justify-center text-slate-300 active:scale-95 transition" title="Settings & Setup">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+          </svg>
+        </button>
+      </div>
+    </header>
+
+    <!-- Offline & Pending Sync Banner (Hidden by default) -->
+    <div id="sync-banner" class="hidden mt-3 p-2.5 bg-amber-500/10 border border-amber-500/30 rounded-xl flex items-center justify-between text-xs text-amber-300">
+      <div class="flex items-center space-x-2">
+        <span class="w-2 h-2 rounded-full bg-amber-400 animate-ping"></span>
+        <span id="sync-banner-text">3 expenses pending sync</span>
+      </div>
+      <button id="sync-now-btn" class="px-2.5 py-1 bg-amber-500 text-slate-950 font-bold rounded-lg active:scale-95 transition">
+        Sync Now
+      </button>
+    </div>
+
+    <!-- Hero Spending Card -->
+    <section class="mt-4 p-4 rounded-2xl bg-gradient-to-br from-slate-800 to-slate-850 border border-slate-750 shadow-lg">
+      <div class="flex justify-between items-start">
+        <div>
+          <span class="text-xs uppercase tracking-wider text-slate-400 font-semibold">Total Trip Spend</span>
+          <div id="hero-total-amount" class="text-3xl font-extrabold text-white mt-1 tracking-tight">₹ 0.00</div>
+        </div>
+        <div class="flex items-center space-x-2">
+          <div id="hero-total-count" class="text-xs px-2.5 py-1 rounded-full bg-slate-700/60 text-slate-300 font-medium border border-slate-650">
+            0 expenses
+          </div>
+          <!-- Collapsible Breakdown Toggle Button -->
+          <button
+            id="toggle-breakdown-btn"
+            type="button"
+            class="w-7 h-7 rounded-lg bg-slate-700/60 hover:bg-slate-700 flex items-center justify-center text-slate-300 active:scale-95 transition border border-slate-650"
+            title="Expand / Collapse Breakdown"
+            aria-label="Toggle Category Breakdown"
+            aria-expanded="false"
+          >
+            <svg id="breakdown-chevron" class="w-4 h-4 transform transition-transform duration-200 -rotate-90" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Collapsible Category Breakdown Container (Hidden by default for cleaner view) -->
+      <div id="breakdown-container" class="hidden mt-3.5 pt-3 border-t border-slate-750/70 transition-all duration-200">
+        <div class="flex items-center justify-between mb-2.5">
+          <span class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Breakdown</span>
+          <!-- View Switcher: Bar vs Pie -->
+          <div class="inline-flex bg-slate-900/80 p-0.5 rounded-lg border border-slate-700/70 text-[11px]">
+            <button
+              id="view-bar-btn"
+              type="button"
+              class="px-2.5 py-1 rounded-md font-medium text-white bg-blue-600 transition flex items-center space-x-1"
+              title="Bar View"
+            >
+              <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h10M4 18h14" />
+              </svg>
+              <span>Bar</span>
+            </button>
+            <button
+              id="view-pie-btn"
+              type="button"
+              class="px-2.5 py-1 rounded-md font-medium text-slate-400 hover:text-slate-200 transition flex items-center space-x-1"
+              title="Pie Chart View"
+            >
+              <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z" />
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z" />
+              </svg>
+              <span>Pie</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Bar View Content -->
+        <div id="breakdown-bar-view">
+          <div id="category-progress-bar" class="w-full h-2 rounded-full bg-slate-700 overflow-hidden flex">
+            <!-- Populated dynamically -->
+            <div class="w-full bg-slate-600"></div>
+          </div>
+          <div id="category-legend" class="mt-2 flex flex-wrap gap-x-3 gap-y-1 text-[11px] text-slate-400">
+            <!-- Populated dynamically -->
+          </div>
+        </div>
+
+        <!-- Pie View Content (Hidden by default or toggled) -->
+        <div id="breakdown-pie-view" class="hidden">
+          <div class="flex flex-col sm:flex-row items-center justify-center gap-4 py-1">
+            <!-- Pure SVG Donut Chart -->
+            <div class="relative w-32 h-32 sm:w-36 sm:h-36 flex-shrink-0 flex items-center justify-center">
+              <svg id="category-pie-svg" viewBox="0 0 100 100" class="w-full h-full -rotate-90 transform">
+                <!-- Slices rendered dynamically -->
+              </svg>
+              <!-- Center label for Donut Chart -->
+              <div class="absolute inset-0 flex flex-col items-center justify-center text-center pointer-events-none px-2">
+                <span class="text-[9px] uppercase tracking-wider text-slate-400 font-semibold">Total</span>
+                <span id="pie-center-amount" class="text-xs font-bold text-white truncate max-w-[80px]">₹ 0</span>
+              </div>
+            </div>
+            <!-- Pie Legend List -->
+            <div id="category-pie-legend" class="flex-1 w-full flex flex-col space-y-1 text-xs text-slate-300">
+              <!-- Populated dynamically -->
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Expense Logging Form -->
+    <section class="mt-5">
+      <form id="expense-form" class="space-y-4">
+
+        <!-- Amount & Currency Input Box -->
+        <div class="bg-slate-800/80 border border-slate-700/80 rounded-2xl p-3.5 shadow-sm overflow-hidden">
+          <div class="flex items-center justify-between mb-1.5">
+            <label for="amount-input" class="text-xs font-semibold text-slate-300 uppercase tracking-wider">Amount</label>
+            <!-- Converted INR Preview Badge -->
+            <span id="converted-preview" class="text-xs font-semibold text-blue-400 hidden">
+              ≈ ₹ 0.00
+            </span>
+          </div>
+
+          <div class="flex items-center space-x-2 w-full min-w-0">
+            <!-- Currency Symbol / Code Selector -->
+            <select id="currency-select" class="h-12 w-28 flex-shrink-0 px-2 bg-slate-700 text-slate-100 font-bold text-xs sm:text-sm rounded-xl border border-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-500">
+              <option value="INR" selected>INR (₹)</option>
+              <option value="USD">USD ($)</option>
+              <option value="EUR">EUR (€)</option>
+              <option value="GBP">GBP (£)</option>
+              <option value="AED">AED (د.إ)</option>
+              <option value="THB">THB (฿)</option>
+              <option value="SGD">SGD (S$)</option>
+              <option value="JPY">JPY (¥)</option>
+              <option value="VND">VND (₫)</option>
+              <option value="IDR">IDR (Rp)</option>
+              <option value="CUSTOM">Custom...</option>
+            </select>
+
+            <!-- Numeric Amount Input -->
+            <input
+              id="amount-input"
+              type="number"
+              inputmode="decimal"
+              step="any"
+              placeholder="0.00"
+              required
+              class="flex-1 min-w-0 w-full h-12 px-3 bg-slate-900 text-white text-xl sm:text-2xl font-black rounded-xl border border-slate-650 placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-500 text-right"
+            />
+          </div>
+
+          <!-- Dynamic Exchange Rate Field (Hidden when INR) -->
+          <div id="exchange-rate-container" class="hidden mt-2.5 pt-2.5 border-t border-slate-700/60 flex items-center justify-between text-xs">
+            <span id="exchange-rate-label" class="text-slate-400 font-medium">1 USD =</span>
+            <div class="flex items-center space-x-1">
+              <input
+                id="exchange-rate-input"
+                type="number"
+                inputmode="decimal"
+                step="any"
+                class="w-20 sm:w-24 h-8 px-2 bg-slate-900 text-white font-bold text-xs rounded-lg border border-slate-650 text-right focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+              <span class="text-slate-400 font-semibold">INR</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Description & Date (Right below Amount) -->
+        <div class="grid grid-cols-3 gap-2">
+          <div class="col-span-2">
+            <label for="desc-input" class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">Description</label>
+            <input
+              id="desc-input"
+              type="text"
+              placeholder="e.g. Beach lunch, taxi, museum"
+              class="w-full h-11 px-3 bg-slate-800 text-slate-100 text-sm rounded-xl border border-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
+          <div>
+            <label for="date-input" class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">Date</label>
+            <input
+              id="date-input"
+              type="date"
+              required
+              class="w-full h-11 px-2.5 bg-slate-800 text-slate-100 text-xs rounded-xl border border-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
+        </div>
+
+        <!-- Category Selector (Compact & Sleek - No Default) -->
+        <div>
+          <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Category <span class="text-blue-400">*</span></label>
+          <div id="category-chips" class="grid grid-cols-3 gap-1.5">
+            <button type="button" data-category="Food & Dining" class="chip-btn category-pill flex items-center justify-center space-x-1.5 py-2 px-1.5 rounded-xl bg-slate-800 hover:bg-slate-750 border border-slate-700 text-center">
+              <span class="text-base">🍛</span>
+              <span class="text-xs font-semibold text-slate-200 truncate">Food</span>
+            </button>
+            <button type="button" data-category="Travel Tickets" class="chip-btn category-pill flex items-center justify-center space-x-1.5 py-2 px-1.5 rounded-xl bg-slate-800 hover:bg-slate-750 border border-slate-700 text-center">
+              <span class="text-base">✈️</span>
+              <span class="text-xs font-semibold text-slate-200 truncate">Tickets</span>
+            </button>
+            <button type="button" data-category="Fuel & Tolls" class="chip-btn category-pill flex items-center justify-center space-x-1.5 py-2 px-1.5 rounded-xl bg-slate-800 hover:bg-slate-750 border border-slate-700 text-center">
+              <span class="text-base">⛽</span>
+              <span class="text-xs font-semibold text-slate-200 truncate">Fuel & Toll</span>
+            </button>
+            <button type="button" data-category="Stay & Hotel" class="chip-btn category-pill flex items-center justify-center space-x-1.5 py-2 px-1.5 rounded-xl bg-slate-800 hover:bg-slate-750 border border-slate-700 text-center">
+              <span class="text-base">🏨</span>
+              <span class="text-xs font-semibold text-slate-200 truncate">Stay</span>
+            </button>
+            <button type="button" data-category="Tickets & Activities" class="chip-btn category-pill flex items-center justify-center space-x-1.5 py-2 px-1.5 rounded-xl bg-slate-800 hover:bg-slate-750 border border-slate-700 text-center">
+              <span class="text-base">🎟️</span>
+              <span class="text-xs font-semibold text-slate-200 truncate">Activities</span>
+            </button>
+            <button type="button" data-category="Shopping" class="chip-btn category-pill flex items-center justify-center space-x-1.5 py-2 px-1.5 rounded-xl bg-slate-800 hover:bg-slate-750 border border-slate-700 text-center">
+              <span class="text-base">🛍️</span>
+              <span class="text-xs font-semibold text-slate-200 truncate">Shopping</span>
+            </button>
+            <button type="button" data-category="General / Other" class="chip-btn category-pill col-span-3 flex items-center justify-center space-x-1.5 py-2 px-1.5 rounded-xl bg-slate-800 hover:bg-slate-750 border border-slate-700 text-center">
+              <span class="text-base">📦</span>
+              <span class="text-xs font-semibold text-slate-200 truncate">General / Other</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Paid By Selector (No Default) -->
+        <div>
+          <div class="flex items-center justify-between mb-2">
+            <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider">Paid By <span class="text-blue-400">*</span></label>
+            <button id="quick-add-tag-btn" type="button" class="text-[11px] text-blue-400 hover:text-blue-300 font-medium flex items-center space-x-0.5">
+              <span>+ Add Tag</span>
+            </button>
+          </div>
+          <div id="paid-by-chips" class="flex flex-wrap gap-2">
+            <!-- Dynamically populated chips -->
+          </div>
+        </div>
+
+        <!-- Payment Mode Chips (No Default) -->
+        <div>
+          <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Payment Mode <span class="text-blue-400">*</span></label>
+          <div id="payment-mode-chips" class="flex flex-wrap gap-1.5">
+            <button type="button" data-mode="UPI / GPay" class="chip-btn payment-pill px-3 py-1.5 rounded-lg bg-slate-800 border border-slate-700 text-xs font-semibold text-slate-200">UPI / GPay</button>
+            <button type="button" data-mode="Cash" class="chip-btn payment-pill px-3 py-1.5 rounded-lg bg-slate-800 border border-slate-700 text-xs font-semibold text-slate-200">Cash</button>
+            <button type="button" data-mode="Credit Card" class="chip-btn payment-pill px-3 py-1.5 rounded-lg bg-slate-800 border border-slate-700 text-xs font-semibold text-slate-200">Credit Card</button>
+            <button type="button" data-mode="Debit Card" class="chip-btn payment-pill px-3 py-1.5 rounded-lg bg-slate-800 border border-slate-700 text-xs font-semibold text-slate-200">Debit Card</button>
+            <button type="button" data-mode="Forex Card" class="chip-btn payment-pill px-3 py-1.5 rounded-lg bg-slate-800 border border-slate-700 text-xs font-semibold text-slate-200">Forex Card</button>
+          </div>
+        </div>
+
+        <!-- Submit CTA -->
+        <button
+          id="submit-expense-btn"
+          type="submit"
+          class="w-full h-13 py-3.5 bg-blue-600 hover:bg-blue-500 active:scale-[0.98] text-white font-bold text-base rounded-2xl shadow-lg shadow-blue-600/30 transition flex items-center justify-center space-x-2"
+        >
+          <span>Log Expense</span>
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+          </svg>
+        </button>
+      </form>
+    </section>
+
+    <!-- Recent Expenses Feed -->
+    <section class="mt-8 pb-8">
+      <div class="flex items-center justify-between mb-3">
+        <div class="flex items-center space-x-2">
+          <h2 class="text-sm font-bold uppercase tracking-wider text-slate-300">Recent Transactions</h2>
+          <!-- Collapsible Transactions Toggle Button -->
+          <button
+            id="toggle-txns-btn"
+            type="button"
+            class="w-6 h-6 rounded-md bg-slate-800 hover:bg-slate-700 flex items-center justify-center text-slate-400 hover:text-slate-200 active:scale-95 transition border border-slate-700"
+            title="Expand / Collapse Transactions"
+            aria-label="Toggle Recent Transactions"
+            aria-expanded="false"
+          >
+            <svg id="txns-chevron" class="w-3.5 h-3.5 transform transition-transform duration-200 -rotate-90" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+            </svg>
+          </button>
+        </div>
+
+        <a id="open-sheet-link" href="#" target="_blank" class="hidden text-xs text-blue-400 hover:underline flex items-center space-x-1">
+          <span>Open Sheet</span>
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+          </svg>
+        </a>
+      </div>
+
+      <!-- Collapsible Container for Transactions (Hidden by default for clean view) -->
+      <div id="recent-transactions-container" class="hidden transition-all duration-200">
+        <div id="recent-transactions-list" class="space-y-2">
+          <!-- Populated dynamically -->
+          <div class="p-6 text-center text-slate-500 text-xs bg-slate-800/40 rounded-xl border border-slate-800">
+            No expenses recorded yet.
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </div>
+
+  <!-- Trip Switcher & Management Modal -->
+  <div id="trip-modal" class="fixed inset-0 z-50 bg-black/60 modal-backdrop hidden flex items-center justify-center p-4">
+    <div class="bg-slate-800 border border-slate-700 rounded-2xl max-w-sm w-full p-4 shadow-2xl">
+      <div class="flex items-center justify-between pb-3 border-b border-slate-700">
+        <h3 class="font-bold text-slate-100 text-base">Your Saved Trips</h3>
+        <button id="close-trip-modal-btn" class="w-8 h-8 rounded-full bg-slate-700 flex items-center justify-center text-slate-300">✕</button>
+      </div>
+
+      <div id="saved-trips-list" class="my-3 space-y-2 max-h-64 overflow-y-auto">
+        <!-- Dynamically populated list of trips -->
+      </div>
+
+      <button id="add-new-trip-btn" class="w-full mt-2 py-2.5 px-3 bg-blue-600 hover:bg-blue-500 text-white font-semibold text-sm rounded-xl transition flex items-center justify-center space-x-1.5">
+        <span>+ Create New Trip</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Settings Modal Drawer -->
+  <div id="settings-modal" class="fixed inset-0 z-50 bg-black/60 modal-backdrop hidden flex items-end sm:items-center justify-center sm:p-4">
+    <div class="bg-slate-850 border border-slate-750 rounded-t-3xl sm:rounded-2xl max-w-md w-full p-5 max-h-[92vh] overflow-y-auto shadow-2xl space-y-4">
+
+      <div class="flex items-center justify-between pb-3 border-b border-slate-750">
+        <div class="flex items-center space-x-2">
+          <span class="text-xl">⚙️</span>
+          <h3 id="settings-modal-title" class="font-bold text-slate-100 text-lg">Trip & Ledger Settings</h3>
+          <span id="settings-role-badge" class="text-[10px] px-2 py-0.5 rounded-full font-bold bg-blue-500/20 text-blue-300">Creator</span>
+        </div>
+        <button id="close-settings-btn" class="w-8 h-8 rounded-full bg-slate-750 flex items-center justify-center text-slate-300">✕</button>
+      </div>
+
+      <!-- Shared Member Warning Banner (Visible only for family link members) -->
+      <div id="shared-trip-warning" class="hidden p-3 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-300 text-xs flex items-start space-x-2">
+        <span class="text-base flex-shrink-0">🔒</span>
+        <div class="flex-1">
+          <span class="font-bold block">Shared Trip (Member Access)</span>
+          <span>Core settings (Sheet ID, Script URL, Passcode) are restricted to the trip creator to prevent accidental changes.</span>
+          <button type="button" id="unlock-owner-btn" class="mt-1.5 text-blue-400 hover:text-blue-300 underline font-semibold block text-left">
+            Are you the creator? Unlock Creator Settings ➔
+          </button>
+        </div>
+      </div>
+
+      <!-- Trip Configuration Form -->
+      <form id="settings-form" class="space-y-3.5">
+        <!-- Hidden Trip ID input (empty = create new trip, value = update existing trip) -->
+        <input type="hidden" id="settings-trip-id" value="" />
+
+        <div>
+          <label for="settings-trip-name" class="block text-xs font-semibold text-slate-400 mb-1">
+            Trip Name <span class="text-blue-400">*</span>
+          </label>
+          <input
+            id="settings-trip-name"
+            type="text"
+            required
+            placeholder="e.g. Goa Vacation 2026"
+            class="w-full h-11 px-3 bg-slate-800 text-slate-100 text-sm rounded-xl border border-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
+        </div>
+
+        <!-- Creator-Only Backend Configuration Fields (Hidden in Member Mode) -->
+        <div id="creator-only-fields" class="space-y-3.5">
+          <div>
+            <label for="settings-sheet-id" class="block text-xs font-semibold text-slate-400 mb-1">
+              Google Sheet ID or Full URL
+            </label>
+            <input
+              id="settings-sheet-id"
+              type="text"
+              placeholder="Paste Sheet URL or ID (e.g. 1BxiMVs...)"
+              class="w-full h-11 px-3 bg-slate-800 text-slate-100 text-sm rounded-xl border border-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+            <span class="text-[11px] text-slate-500 mt-0.5 block">Create a private Google Sheet in Drive & paste its link here.</span>
+          </div>
+
+          <div>
+            <label for="settings-script-url" class="block text-xs font-semibold text-slate-400 mb-1">
+              Apps Script Web App URL
+            </label>
+            <input
+              id="settings-script-url"
+              type="text"
+              placeholder="https://script.google.com/macros/s/.../exec"
+              class="w-full h-11 px-3 bg-slate-800 text-slate-100 text-sm rounded-xl border border-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
+
+          <div>
+            <label for="settings-secret" class="block text-xs font-semibold text-slate-400 mb-1">
+              Secret Passcode (API_SECRET)
+            </label>
+            <div class="relative flex items-center">
+              <input
+                id="settings-secret"
+                type="password"
+                placeholder="Passcode configured in Apps Script Properties"
+                class="w-full h-11 pl-3 pr-10 bg-slate-800 text-slate-100 text-sm rounded-xl border border-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+              <button
+                type="button"
+                id="toggle-secret-visibility-btn"
+                class="absolute right-2.5 p-1 text-slate-400 hover:text-slate-200 transition focus:outline-none"
+                title="Toggle passcode visibility"
+              >
+                <svg id="eye-icon" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                </svg>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <button
+          type="submit"
+          id="save-trip-settings-btn"
+          class="w-full py-3 bg-blue-600 hover:bg-blue-500 active:scale-[0.98] text-white font-bold text-sm rounded-xl shadow-md transition"
+        >
+          Save Trip Settings
+        </button>
+      </form>
+
+      <!-- Manage Paid By Tags Section -->
+      <div class="mt-4 p-4 rounded-xl bg-slate-800/80 border border-slate-700 space-y-3">
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-bold uppercase tracking-wider text-slate-300">"Paid By" Tags</span>
+          <span class="text-[10px] text-slate-400">Click ✕ to remove</span>
+        </div>
+
+        <!-- Rendered list of tags with ✕ button -->
+        <div id="settings-paid-by-list" class="flex flex-wrap gap-2">
+          <!-- Dynamically populated tags with delete button -->
+        </div>
+
+        <!-- Add Tag Input -->
+        <div class="flex space-x-2 pt-1">
+          <input
+            id="new-paid-by-input"
+            type="text"
+            placeholder="Add new tag (e.g. Dad, Partner)"
+            class="flex-1 h-9 px-3 bg-slate-900 text-slate-100 text-xs rounded-lg border border-slate-700 focus:outline-none focus:ring-1 focus:ring-blue-500"
+          />
+          <button
+            id="add-paid-by-btn"
+            type="button"
+            class="px-3.5 h-9 bg-blue-600 hover:bg-blue-500 text-xs font-bold text-white rounded-lg transition"
+          >
+            + Add
+          </button>
+        </div>
+      </div>
+
+      <!-- Shareable Link Card (Creator Only) -->
+      <div id="settings-share-card" class="mt-4 p-4 rounded-xl bg-slate-800/80 border border-slate-700 space-y-2">
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-bold uppercase tracking-wider text-slate-300">Family Share Link</span>
+          <span class="text-[10px] px-2 py-0.5 rounded bg-blue-500/20 text-blue-300 font-semibold">1-Tap Setup</span>
+        </div>
+        <p class="text-xs text-slate-400">
+          Send this link to family or travel companions. Opening it configures their device with the Sheet ID and passcode instantly!
+        </p>
+        <button
+          id="copy-share-link-btn"
+          class="w-full py-2.5 px-3 bg-slate-700 hover:bg-slate-650 active:scale-[0.98] text-slate-200 font-semibold text-xs rounded-lg transition flex items-center justify-center space-x-1.5"
+        >
+          <svg class="w-4 h-4 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" />
+          </svg>
+          <span id="copy-share-btn-text">Copy Family Share Link</span>
+        </button>
+      </div>
+
+      <!-- Delete Trip Option -->
+      <div class="pt-2">
+        <button
+          id="delete-trip-btn"
+          type="button"
+          class="w-full py-2 text-xs text-red-400 hover:text-red-300 hover:bg-red-500/10 rounded-lg transition font-medium"
+        >
+          Delete This Trip from Device
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Toast Notification Banner -->
+  <div id="toast" class="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 px-4 py-2.5 rounded-xl bg-slate-800 text-white text-xs font-semibold shadow-2xl border border-slate-700 flex items-center space-x-2 transition-all duration-300 opacity-0 pointer-events-none translate-y-2">
+    <span id="toast-icon">✓</span>
+    <span id="toast-text">Success</span>
+  </div>
+
+  <!-- Scripts -->
+  <script src="js/currency.js"></script>
+  <script src="js/storage.js"></script>
+  <script src="js/sheets-api.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>

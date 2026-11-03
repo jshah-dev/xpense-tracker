@@ -1,0 +1,96 @@
+/* Safe Area Insets for iOS & Android Edge-to-Edge */
+:root {
+  --sat: env(safe-area-inset-top, 0px);
+  --sar: env(safe-area-inset-right, 0px);
+  --sab: env(safe-area-inset-bottom, 0px);
+  --sal: env(safe-area-inset-left, 0px);
+}
+
+* {
+  -webkit-tap-highlight-color: transparent;
+  box-sizing: border-box;
+}
+
+body {
+  padding-top: var(--sat);
+  padding-bottom: calc(var(--sab) + 16px);
+  padding-left: var(--sal);
+  padding-right: var(--sar);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  user-select: none;
+  -webkit-user-select: none;
+  overflow-x: hidden;
+}
+
+/* Hide native number input spin buttons */
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+input[type="number"] {
+  -moz-appearance: textfield;
+}
+
+/* Allow text selection in inputs and table/card texts */
+input, textarea, [data-selectable="true"] {
+  user-select: text;
+  -webkit-user-select: text;
+}
+
+/* Touch Targets: Minimum 44-48px height */
+.touch-target {
+  min-height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Custom scrollbar for horizontal chip bars */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Category & Paid By Pills */
+.chip-btn {
+  transition: all 0.15s ease-in-out;
+}
+
+.chip-btn:active {
+  transform: scale(0.96);
+}
+
+.chip-btn.active {
+  box-shadow: 0 0 0 2px #3b82f6, 0 4px 6px -1px rgba(59, 130, 246, 0.2);
+}
+
+/* Pending Sync Pulse Badge */
+@keyframes syncPulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+.animate-sync-pulse {
+  animation: syncPulse 1.8s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* Pull to Refresh Spinning */
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.animate-spin-fast {
+  animation: spin 0.7s linear infinite;
+}
+
+/* Modal Backdrops */
+.modal-backdrop {
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
+
