@@ -258,6 +258,72 @@ const Storage = {
 
   clearOfflineQueue() {
     this._setJSON(StorageKeys.OFFLINE_QUEUE, []);
+  },
+
+  // --- Family Share Link Obfuscation (URL-safe Base64) ---
+
+  /**
+   * Encodes trip parameters into an obscured, URL-safe Base64 token for Family Sharing
+   */
+  encodeSharePayload(trip) {
+    if (!trip || !trip.sheetId || !trip.secret) return '';
+    const payload = {
+      s: this.extractSheetId(trip.sheetId),
+      t: (trip.name || 'Shared Vacation').trim(),
+      k: (trip.secret || '').trim()
+    };
+    if (trip.scriptUrl) {
+      payload.u = trip.scriptUrl.trim();
+    }
+
+    const jsonStr = JSON.stringify(payload);
+    const utf8Bytes = new TextEncoder().encode(jsonStr);
+    let binary = '';
+    for (let i = 0; i < utf8Bytes.length; i++) {
+      binary += String.fromCharCode(utf8Bytes[i]);
+    }
+
+    return btoa(binary)
+      .replace(/\+/g, '-')
+      .replace(/\//g, '_')
+      .replace(/=+$/, '');
+  },
+
+  /**
+   * Decodes an obscured URL-safe Base64 share payload into trip parameters
+   */
+  decodeSharePayload(encodedStr) {
+    if (!encodedStr || typeof encodedStr !== 'string') return null;
+    try {
+      let base64 = encodedStr.trim().replace(/-/g, '+').replace(/_/g, '/');
+      while (base64.length % 4) {
+        base64 += '=';
+      }
+
+      const binary = atob(base64);
+      const bytes = new Uint8Array(binary.length);
+      for (let i = 0; i < binary.length; i++) {
+        bytes[i] = binary.charCodeAt(i);
+      }
+
+      const jsonStr = new TextDecoder().decode(bytes);
+      const data = JSON.parse(jsonStr);
+      if (!data || typeof data !== 'object') return null;
+
+      // Support compact keys (s, t, k, u) and verbose keys (sheet, trip, key, script)
+      const sheetId = data.s || data.sheet || data.sheetId;
+      if (!sheetId) return null;
+
+      return {
+        sheetId: this.extractSheetId(sheetId),
+        name: data.t || data.trip || data.name || 'Shared Vacation',
+        secret: data.k || data.key || data.secret || '',
+        scriptUrl: data.u || data.script || data.scriptUrl || ''
+      };
+    } catch (err) {
+      console.debug('Failed to decode share payload:', err.message || err);
+      return null;
+    }
   }
 };
 

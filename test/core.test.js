@@ -134,4 +134,49 @@ assert.strictEqual(getBreakdownDefault(), true, 'Breakdown bar/chart must defaul
 localStorage.setItem('xpense_txns_collapsed', 'false');
 assert.strictEqual(getTxnsDefault(), false, 'Transactions list should reflect user expanded state');
 
+// 7. Family Share Link Obfuscation (URL-safe Base64)
+console.log('7. Testing Family Share Link Encoding & Obfuscation (URL-safe Base64)...');
+const tripToShare = {
+  sheetId: 'https://docs.google.com/spreadsheets/d/1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgvE2upms/edit',
+  name: 'Goa 🏝️ Vacation 2026',
+  secret: '#P@ssw0rd!&=+',
+  scriptUrl: 'https://script.google.com/macros/s/AKfycbxyz123/exec'
+};
+
+const encodedToken = Storage.encodeSharePayload(tripToShare);
+assert.ok(encodedToken && encodedToken.length > 20, 'Encoded token should be a non-empty string');
+// Must be URL-safe: no '+', no '/', no trailing '='
+assert.strictEqual(encodedToken.includes('+'), false, 'Token must not contain +');
+assert.strictEqual(encodedToken.includes('/'), false, 'Token must not contain /');
+assert.strictEqual(encodedToken.includes('='), false, 'Token must not contain trailing =');
+// Plain text secrets and sheet IDs must NOT be directly visible
+assert.strictEqual(encodedToken.includes('#P@ssw0rd!&=+'), false, 'Raw secret must not appear in plain text');
+assert.strictEqual(encodedToken.includes('1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgvE2upms'), false, 'Raw sheet ID must not appear in plain text');
+
+// Decoding back
+const decodedTrip = Storage.decodeSharePayload(encodedToken);
+assert.ok(decodedTrip, 'Decoded trip must not be null');
+assert.strictEqual(decodedTrip.sheetId, '1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgvE2upms');
+assert.strictEqual(decodedTrip.name, 'Goa 🏝️ Vacation 2026', 'Unicode emojis must be preserved intact');
+assert.strictEqual(decodedTrip.secret, '#P@ssw0rd!&=+', 'Complex secret characters must be preserved intact');
+assert.strictEqual(decodedTrip.scriptUrl, 'https://script.google.com/macros/s/AKfycbxyz123/exec');
+
+// Graceful error handling on invalid / corrupt tokens
+assert.strictEqual(Storage.decodeSharePayload('not-a-valid-base64-payload!!!'), null);
+assert.strictEqual(Storage.decodeSharePayload(''), null);
+assert.strictEqual(Storage.decodeSharePayload(null), null);
+
+// Backward-compatibility with verbose/legacy JSON keys (sheet, trip, key, script)
+const verboseBase64 = Buffer.from(JSON.stringify({
+  sheet: '1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgvE2upms',
+  trip: 'Legacy Vacation',
+  key: 'OldPasscode',
+  script: 'https://script.google.com/macros/s/old/exec'
+})).toString('base64');
+const decodedVerbose = Storage.decodeSharePayload(verboseBase64);
+assert.ok(decodedVerbose);
+assert.strictEqual(decodedVerbose.sheetId, '1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgvE2upms');
+assert.strictEqual(decodedVerbose.name, 'Legacy Vacation');
+assert.strictEqual(decodedVerbose.secret, 'OldPasscode');
+
 console.log('\nAll Unit & Integration Tests Passed Successfully! ✅');

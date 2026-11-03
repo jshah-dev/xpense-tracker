@@ -67,25 +67,44 @@ function initApp() {
 /**
  * 1. Family Share Link URL Parameter Parser
  * Crucial: Trips imported via shareable link get isOwner: false (Member role)
+ * Supports both new obscured Base64 tokens (?join=...) and legacy plain params (?sheet=...)
  */
 function parseUrlTripParameters() {
   const params = new URLSearchParams(window.location.search);
+  const joinParam = params.get('join') || params.get('share');
   const sheetParam = params.get('sheet');
-  const tripParam = params.get('trip');
-  const keyParam = params.get('key');
-  const scriptParam = params.get('script');
 
-  if (sheetParam) {
-    const cleanSheetId = Storage.extractSheetId(sheetParam);
-    const tripName = tripParam ? decodeURIComponent(tripParam) : 'Shared Vacation';
-    const scriptUrl = scriptParam ? decodeURIComponent(scriptParam) : '';
-    const secret = keyParam ? decodeURIComponent(keyParam) : '';
+  let tripToImport = null;
 
+  // 1. Try decoding obscured Base64 share payload
+  if (joinParam) {
+    const decoded = Storage.decodeSharePayload(joinParam);
+    if (decoded && decoded.sheetId) {
+      tripToImport = decoded;
+    }
+  }
+
+  // 2. Fallback to legacy plain URL parameters (?sheet=...&key=...&trip=...)
+  if (!tripToImport && sheetParam) {
+    const tripParam = params.get('trip');
+    const keyParam = params.get('key');
+    const scriptParam = params.get('script');
+
+    tripToImport = {
+      sheetId: Storage.extractSheetId(sheetParam),
+      name: tripParam ? decodeURIComponent(tripParam) : 'Shared Vacation',
+      secret: keyParam ? decodeURIComponent(keyParam) : '',
+      scriptUrl: scriptParam ? decodeURIComponent(scriptParam) : ''
+    };
+  }
+
+  // 3. Save imported trip as Member Mode (isOwner: false)
+  if (tripToImport && tripToImport.sheetId) {
     const newTrip = Storage.saveTrip({
-      name: tripName,
-      sheetId: cleanSheetId,
-      scriptUrl: scriptUrl,
-      secret: secret,
+      name: tripToImport.name,
+      sheetId: tripToImport.sheetId,
+      scriptUrl: tripToImport.scriptUrl,
+      secret: tripToImport.secret,
       isOwner: false // Member role: settings are protected from accidental edits!
     });
 
@@ -1251,6 +1270,7 @@ function handleDeleteActiveTrip() {
 
 /**
  * 10. Copy Family Share Link
+ * Obscures sensitive parameters (sheet, secret, script) in a URL-safe Base64 token (?join=...)
  */
 function handleCopyShareLink() {
   const activeTrip = Storage.getActiveTrip();
@@ -1262,17 +1282,13 @@ function handleCopyShareLink() {
   const origin = window.location.origin;
   const path = window.location.pathname;
 
-  const params = new URLSearchParams({
-    sheet: activeTrip.sheetId,
-    trip: activeTrip.name,
-    key: activeTrip.secret
-  });
-
-  if (activeTrip.scriptUrl) {
-    params.set('script', activeTrip.scriptUrl);
+  const encodedPayload = Storage.encodeSharePayload(activeTrip);
+  if (!encodedPayload) {
+    showToast('Failed to generate share link.', true);
+    return;
   }
 
-  const shareUrl = `${origin}${path}?${params.toString()}`;
+  const shareUrl = `${origin}${path}?join=${encodedPayload}`;
 
   navigator.clipboard.writeText(shareUrl).then(() => {
     const textEl = document.getElementById('copy-share-btn-text');

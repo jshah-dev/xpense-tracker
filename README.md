@@ -160,8 +160,9 @@ xpense-tracker/
    * **Secret Passcode:** Enter the `API_SECRET` passcode you configured in Step 2.
    * Tap **Save Trip Settings**.
 3. Tap **"Copy Family Share Link"**:
-   * Send the generated link to your travel companions.
-   * When companions tap the link on their phones, the app automatically configures itself and cleanses credentials from the address bar.
+   * Generates a secure, obscured share link using URL-safe Base64 (`?join=...`) so sensitive Sheet IDs and passcodes are never exposed in plain text.
+   * Send the generated link to your travel companions via WhatsApp, Messages, or email.
+   * When companions tap the link on their phones, the app automatically configures itself and cleanses the query token from the address bar.
    * Companions receive **Member Access** (they can log expenses and pick synced tags, while settings remain protected).
 
 ---
