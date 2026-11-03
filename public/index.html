@@ -17,6 +17,15 @@
   <!-- Tailwind CSS via CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="css/style.css">
+  <script>
+    (function() {
+      try {
+        if (localStorage.getItem('travel_theme') === 'light') {
+          document.documentElement.classList.add('light');
+        }
+      } catch(e) {}
+    })();
+  </script>
 </head>
 <body class="min-h-full flex flex-col justify-between selection:bg-blue-600 selection:text-white">
 
@@ -48,6 +57,10 @@
       </div>
 
       <div class="flex items-center space-x-2">
+        <!-- Theme Toggle Button -->
+        <button id="theme-toggle-btn" class="w-10 h-10 rounded-full bg-slate-800 hover:bg-slate-700 flex items-center justify-center text-slate-300 active:scale-95 transition" title="Toggle Light / Dark Mode" aria-label="Toggle Theme">
+          <span id="theme-toggle-icon" class="text-base select-none">☀️</span>
+        </button>
         <!-- Live Refresh Button -->
         <button id="refresh-btn" class="w-10 h-10 rounded-full bg-slate-800 hover:bg-slate-700 flex items-center justify-center text-slate-300 active:scale-95 transition" title="Refresh Live Spend">
           <svg id="refresh-icon" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

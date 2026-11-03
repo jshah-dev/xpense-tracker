@@ -94,3 +94,408 @@ input, textarea, [data-selectable="true"] {
   -webkit-backdrop-filter: blur(4px);
 }
 
+/* ==========================================================================
+   Color Scheme & Light Mode (High Contrast for Outdoor Sunlight)
+   ========================================================================== */
+html {
+  color-scheme: dark;
+}
+
+html.light {
+  color-scheme: light;
+  background-color: #f8fafc !important;
+  color: #0f172a !important;
+}
+
+html.light body {
+  background-color: #f8fafc !important;
+  color: #0f172a !important;
+}
+
+/* Header & Nav */
+html.light header {
+  border-bottom-color: #e2e8f0 !important;
+}
+
+html.light #trip-selector-btn {
+  color: #0f172a !important;
+}
+
+html.light #trip-selector-btn:hover {
+  color: #2563eb !important;
+}
+
+/* Header buttons & Icon toggles */
+html.light #theme-toggle-btn,
+html.light #refresh-btn,
+html.light #settings-btn,
+html.light #quick-edit-trip-btn,
+html.light #toggle-breakdown-btn,
+html.light #toggle-txns-btn {
+  background-color: #ffffff !important;
+  border: 1px solid #cbd5e1 !important;
+  color: #334155 !important;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05) !important;
+}
+
+html.light #theme-toggle-btn:hover,
+html.light #refresh-btn:hover,
+html.light #settings-btn:hover,
+html.light #quick-edit-trip-btn:hover,
+html.light #toggle-breakdown-btn:hover,
+html.light #toggle-txns-btn:hover {
+  background-color: #f1f5f9 !important;
+  color: #0f172a !important;
+}
+
+/* Hero Spend Card */
+html.light section.bg-gradient-to-br,
+html.light .from-slate-800.to-slate-850 {
+  background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%) !important;
+  border-color: #cbd5e1 !important;
+  box-shadow: 0 4px 14px -2px rgba(0, 0, 0, 0.06), 0 2px 4px -1px rgba(0, 0, 0, 0.04) !important;
+}
+
+html.light #hero-total-amount {
+  color: #0f172a !important;
+}
+
+html.light #hero-total-count {
+  background-color: #f1f5f9 !important;
+  border-color: #e2e8f0 !important;
+  color: #334155 !important;
+}
+
+html.light #breakdown-container {
+  border-top-color: #e2e8f0 !important;
+}
+
+html.light #breakdown-container .inline-flex.bg-slate-900\/80 {
+  background-color: #f1f5f9 !important;
+  border-color: #cbd5e1 !important;
+}
+
+html.light #view-pie-btn:not(.bg-blue-600),
+html.light #view-bar-btn:not(.bg-blue-600) {
+  color: #475569 !important;
+}
+
+html.light #category-progress-bar {
+  background-color: #e2e8f0 !important;
+}
+
+html.light #category-progress-bar > div.bg-slate-600 {
+  background-color: #cbd5e1 !important;
+}
+
+html.light #category-legend {
+  color: #475569 !important;
+}
+
+html.light .pie-track-circle {
+  stroke: #e2e8f0 !important;
+}
+
+html.light #pie-center-amount {
+  color: #0f172a !important;
+}
+
+html.light #category-pie-legend > div {
+  border-bottom-color: #f1f5f9 !important;
+}
+
+html.light #category-pie-legend .text-slate-300 {
+  color: #334155 !important;
+}
+
+html.light #category-pie-legend .text-white {
+  color: #0f172a !important;
+}
+
+html.light #category-pie-legend .text-slate-400 {
+  color: #64748b !important;
+}
+
+/* Form Container & Inputs */
+html.light #expense-form .bg-slate-800\/80 {
+  background-color: #ffffff !important;
+  border-color: #cbd5e1 !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05) !important;
+}
+
+html.light label {
+  color: #334155 !important;
+}
+
+html.light #currency-select {
+  background-color: #f8fafc !important;
+  color: #0f172a !important;
+  border-color: #cbd5e1 !important;
+}
+
+html.light #amount-input {
+  background-color: #ffffff !important;
+  color: #0f172a !important;
+  border-color: #cbd5e1 !important;
+}
+
+html.light #amount-input::placeholder,
+html.light #desc-input::placeholder,
+html.light #settings-trip-name::placeholder,
+html.light #settings-sheet-id::placeholder,
+html.light #settings-script-url::placeholder,
+html.light #settings-secret::placeholder,
+html.light #new-paid-by-input::placeholder {
+  color: #94a3b8 !important;
+}
+
+html.light #exchange-rate-container {
+  border-top-color: #e2e8f0 !important;
+}
+
+html.light #exchange-rate-input {
+  background-color: #ffffff !important;
+  color: #0f172a !important;
+  border-color: #cbd5e1 !important;
+}
+
+html.light #exchange-rate-label,
+html.light #exchange-rate-base-code {
+  color: #475569 !important;
+}
+
+html.light #desc-input,
+html.light #date-input {
+  background-color: #ffffff !important;
+  color: #0f172a !important;
+  border-color: #cbd5e1 !important;
+}
+
+/* Category & Payment Pills */
+html.light .category-pill,
+html.light .payment-pill,
+html.light .chip-btn {
+  background-color: #ffffff !important;
+  border-color: #cbd5e1 !important;
+  color: #1e293b !important;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+}
+
+html.light .category-pill span.text-slate-200,
+html.light .payment-pill span,
+html.light .chip-btn {
+  color: #1e293b !important;
+}
+
+html.light .category-pill:hover,
+html.light .payment-pill:hover,
+html.light .chip-btn:hover {
+  background-color: #f8fafc !important;
+  border-color: #94a3b8 !important;
+}
+
+html.light .category-pill.active,
+html.light .payment-pill.active,
+html.light .chip-btn.active {
+  background-color: #eff6ff !important;
+  border-color: #3b82f6 !important;
+  color: #1d4ed8 !important;
+  box-shadow: 0 0 0 2px #3b82f6, 0 4px 6px -1px rgba(59, 130, 246, 0.2) !important;
+}
+
+html.light .category-pill.active span.text-slate-200,
+html.light .payment-pill.active span,
+html.light .chip-btn.active {
+  color: #1d4ed8 !important;
+}
+
+/* Recent Transactions */
+html.light section h2.text-slate-300 {
+  color: #334155 !important;
+}
+
+html.light #recent-transactions-list > div.bg-slate-800\/40 {
+  background-color: #ffffff !important;
+  border-color: #e2e8f0 !important;
+  color: #64748b !important;
+}
+
+html.light #recent-transactions-list > div.bg-slate-800\/70 {
+  background-color: #ffffff !important;
+  border-color: #e2e8f0 !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04) !important;
+}
+
+html.light #recent-transactions-list .text-slate-100 {
+  color: #0f172a !important;
+}
+
+html.light #recent-transactions-list .text-white {
+  color: #0f172a !important;
+}
+
+html.light #recent-transactions-list .text-slate-400 {
+  color: #64748b !important;
+}
+
+html.light #recent-transactions-list .bg-slate-700\/60 {
+  background-color: #f1f5f9 !important;
+  color: #334155 !important;
+}
+
+/* Modals */
+html.light #trip-modal > div,
+html.light #settings-modal > div {
+  background-color: #ffffff !important;
+  border-color: #e2e8f0 !important;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.05) !important;
+}
+
+html.light #trip-modal .text-slate-100,
+html.light #settings-modal .text-slate-100 {
+  color: #0f172a !important;
+}
+
+html.light #close-trip-modal-btn,
+html.light #close-settings-btn {
+  background-color: #f1f5f9 !important;
+  color: #475569 !important;
+}
+
+html.light #close-trip-modal-btn:hover,
+html.light #close-settings-btn:hover {
+  background-color: #e2e8f0 !important;
+  color: #0f172a !important;
+}
+
+html.light #saved-trips-list > div {
+  background-color: #f8fafc !important;
+  border-color: #e2e8f0 !important;
+  color: #0f172a !important;
+}
+
+html.light #saved-trips-list > div.border-blue-500 {
+  background-color: #eff6ff !important;
+  border-color: #3b82f6 !important;
+}
+
+html.light #settings-modal .border-b {
+  border-bottom-color: #e2e8f0 !important;
+}
+
+html.light #settings-modal .bg-slate-800\/80 {
+  background-color: #f8fafc !important;
+  border-color: #e2e8f0 !important;
+}
+
+html.light #settings-modal .text-slate-300 {
+  color: #1e293b !important;
+}
+
+html.light #settings-modal .text-slate-400 {
+  color: #475569 !important;
+}
+
+html.light #settings-modal .text-slate-500 {
+  color: #64748b !important;
+}
+
+html.light #settings-trip-name,
+html.light #settings-base-currency,
+html.light #settings-sheet-id,
+html.light #settings-script-url,
+html.light #settings-secret,
+html.light #new-paid-by-input {
+  background-color: #ffffff !important;
+  color: #0f172a !important;
+  border-color: #cbd5e1 !important;
+}
+
+html.light #copy-share-link-btn {
+  background-color: #f1f5f9 !important;
+  border: 1px solid #cbd5e1 !important;
+  color: #1e293b !important;
+}
+
+html.light #copy-share-link-btn:hover {
+  background-color: #e2e8f0 !important;
+}
+
+/* Category & Payment Preset Grids in Settings Modal */
+html.light #settings-category-preset-grid > button.bg-slate-800,
+html.light #settings-payment-preset-grid > button.bg-slate-800 {
+  background-color: #ffffff !important;
+  border-color: #cbd5e1 !important;
+  color: #334155 !important;
+  opacity: 1 !important;
+}
+
+html.light #settings-category-preset-grid > button.bg-slate-800 span,
+html.light #settings-payment-preset-grid > button.bg-slate-800 span {
+  color: #334155 !important;
+}
+
+html.light #settings-category-preset-grid > button.bg-slate-800:hover,
+html.light #settings-payment-preset-grid > button.bg-slate-800:hover {
+  background-color: #f8fafc !important;
+  border-color: #94a3b8 !important;
+}
+
+html.light #settings-category-preset-grid > button.bg-blue-600\/20,
+html.light #settings-payment-preset-grid > button.bg-blue-600\/20 {
+  background-color: #eff6ff !important;
+  border-color: #3b82f6 !important;
+  color: #1d4ed8 !important;
+}
+
+html.light #settings-category-preset-grid > button.bg-blue-600\/20 span,
+html.light #settings-payment-preset-grid > button.bg-blue-600\/20 span {
+  color: #1d4ed8 !important;
+}
+
+html.light #settings-category-preset-grid > button.bg-blue-600\/20 span.bg-blue-500,
+html.light #settings-payment-preset-grid > button.bg-blue-600\/20 span.bg-blue-500 {
+  background-color: #2563eb !important;
+  color: #ffffff !important;
+}
+
+/* Paid By Tags in Settings Modal */
+html.light #settings-paid-by-list > div,
+html.light .paid-by-tag-pill {
+  background-color: #ffffff !important;
+  border: 1px solid #cbd5e1 !important;
+  color: #0f172a !important;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05) !important;
+}
+
+html.light #settings-paid-by-list > div span,
+html.light #settings-paid-by-list span,
+html.light .paid-by-tag-pill span,
+html.light .paid-by-tag-pill .tag-name {
+  color: #0f172a !important;
+  font-weight: 600 !important;
+}
+
+html.light #settings-paid-by-list > div button,
+html.light .paid-by-tag-pill button {
+  color: #64748b !important;
+}
+
+html.light #settings-paid-by-list > div button:hover,
+html.light .paid-by-tag-pill button:hover {
+  color: #ef4444 !important;
+}
+
+/* Banners */
+html.light #sync-banner {
+  background-color: #fefce8 !important;
+  border-color: #fef08a !important;
+  color: #854d0e !important;
+}
+
+html.light #shared-trip-warning {
+  background-color: #fefce8 !important;
+  border-color: #fef08a !important;
+  color: #854d0e !important;
+}
+

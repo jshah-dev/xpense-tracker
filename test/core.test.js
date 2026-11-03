@@ -234,4 +234,20 @@ assert.strictEqual(decodedShared.baseCurrency, 'JPY');
 assert.deepStrictEqual(decodedShared.categories, customCats);
 assert.deepStrictEqual(decodedShared.paymentModes, customModes);
 
+console.log('9. Testing UI Theme Preferences (Light & Dark Mode)...');
+// Default theme should be dark
+assert.strictEqual(Storage.getTheme(), 'dark');
+
+// Toggle to light mode
+Storage.setTheme('light');
+assert.strictEqual(Storage.getTheme(), 'light');
+
+// Switch back to dark mode
+Storage.setTheme('dark');
+assert.strictEqual(Storage.getTheme(), 'dark');
+
+// Non-'light' input falls back to 'dark'
+Storage.setTheme('other');
+assert.strictEqual(Storage.getTheme(), 'dark');
+
 console.log('\nAll Unit & Integration Tests Passed Successfully! ✅');

@@ -12,7 +12,8 @@ const StorageKeys = {
   SUMMARY_CACHE_PREFIX: 'travel_summary_',
   PAID_BY_TRIP_PREFIX: 'travel_paid_by_',
   CATEGORIES_TRIP_PREFIX: 'travel_categories_',
-  PAYMENT_MODES_TRIP_PREFIX: 'travel_payment_modes_'
+  PAYMENT_MODES_TRIP_PREFIX: 'travel_payment_modes_',
+  THEME: 'travel_theme'
 };
 
 // By default, only 'Self' tag
@@ -451,6 +452,28 @@ const Storage = {
     } catch (err) {
       console.debug('Failed to decode share payload:', err.message || err);
       return null;
+    }
+  },
+
+  /**
+   * Get preferred UI theme ('dark' | 'light'). Defaults to 'dark'.
+   */
+  getTheme() {
+    try {
+      return localStorage.getItem(StorageKeys.THEME) || 'dark';
+    } catch (e) {
+      return 'dark';
+    }
+  },
+
+  /**
+   * Save UI theme preference ('dark' | 'light').
+   */
+  setTheme(theme) {
+    try {
+      localStorage.setItem(StorageKeys.THEME, theme === 'light' ? 'light' : 'dark');
+    } catch (e) {
+      console.warn('Failed to persist theme:', e);
     }
   }
 };

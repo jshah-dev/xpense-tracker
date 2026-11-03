@@ -80,6 +80,9 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 function initApp() {
+  // 0. Initialize UI Theme (Dark default, Light if chosen)
+  initTheme();
+
   // 1. Check for family share link in URL (?sheet=...&trip=...&key=...&script=...)
   parseUrlTripParameters();
 
@@ -305,6 +308,64 @@ function setupEventListeners() {
   if (toggleTxnsBtn) {
     toggleTxnsBtn.addEventListener('click', handleToggleTxns);
   }
+
+  // Theme Toggle (Light / Dark Mode)
+  const themeToggleBtn = document.getElementById('theme-toggle-btn');
+  if (themeToggleBtn) {
+    themeToggleBtn.addEventListener('click', toggleTheme);
+  }
+}
+
+/**
+ * UI Theme Manager (Light & Dark Mode)
+ */
+function initTheme() {
+  const savedTheme = (typeof Storage !== 'undefined' && Storage.getTheme)
+    ? Storage.getTheme()
+    : (localStorage.getItem('travel_theme') || 'dark');
+  applyTheme(savedTheme, false);
+}
+
+function applyTheme(theme, notify = true) {
+  const isLight = theme === 'light';
+  const html = document.documentElement;
+  const toggleIcon = document.getElementById('theme-toggle-icon');
+  const toggleBtn = document.getElementById('theme-toggle-btn');
+  const metaTheme = document.querySelector('meta[name="theme-color"]');
+
+  if (isLight) {
+    html.classList.add('light');
+    if (toggleIcon) toggleIcon.textContent = '🌙';
+    if (toggleBtn) {
+      toggleBtn.title = 'Switch to Dark Mode';
+      toggleBtn.setAttribute('aria-label', 'Switch to Dark Mode');
+    }
+    if (metaTheme) metaTheme.setAttribute('content', '#f8fafc');
+  } else {
+    html.classList.remove('light');
+    if (toggleIcon) toggleIcon.textContent = '☀️';
+    if (toggleBtn) {
+      toggleBtn.title = 'Switch to Light Mode';
+      toggleBtn.setAttribute('aria-label', 'Switch to Light Mode');
+    }
+    if (metaTheme) metaTheme.setAttribute('content', '#0f172a');
+  }
+
+  if (typeof Storage !== 'undefined' && Storage.setTheme) {
+    Storage.setTheme(theme);
+  } else {
+    localStorage.setItem('travel_theme', theme);
+  }
+
+  if (notify) {
+    showToast(isLight ? '☀️ Light mode enabled' : '🌙 Dark mode enabled');
+  }
+}
+
+function toggleTheme() {
+  const currentTheme = document.documentElement.classList.contains('light') ? 'light' : 'dark';
+  const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+  applyTheme(newTheme, true);
 }
 
 /**
@@ -747,9 +808,9 @@ function renderSettingsPaidByList() {
 
   options.forEach((name) => {
     const pill = document.createElement('div');
-    pill.className = 'inline-flex items-center space-x-1.5 px-3 py-1 bg-slate-750 border border-slate-700 rounded-lg text-xs font-medium text-slate-200';
+    pill.className = 'paid-by-tag-pill inline-flex items-center space-x-1.5 px-3 py-1 bg-slate-750 border border-slate-700 rounded-lg text-xs font-medium text-slate-200';
     pill.innerHTML = `
-      <span>${name}</span>
+      <span class="tag-name text-slate-200 font-semibold">${name}</span>
       <button type="button" class="text-slate-400 hover:text-red-400 font-bold ml-1 transition" title="Remove tag">✕</button>
     `;
 
@@ -1137,7 +1198,7 @@ function renderCategoryBreakdown(breakdown = {}, totalSpend = 0) {
     if (barLegend) barLegend.innerHTML = '<span class="text-slate-500 italic text-[11px]">No expenses recorded yet.</span>';
     if (pieSvg) {
       pieSvg.innerHTML = `
-        <circle cx="50" cy="50" r="38" fill="transparent" stroke="#334155" stroke-width="14"></circle>
+        <circle class="pie-track-circle" cx="50" cy="50" r="38" fill="transparent" stroke="#334155" stroke-width="14"></circle>
       `;
     }
     if (pieLegend) {
@@ -1160,6 +1221,7 @@ function renderCategoryBreakdown(breakdown = {}, totalSpend = 0) {
   // Render background track for Pie SVG
   if (pieSvg) {
     const track = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+    track.setAttribute('class', 'pie-track-circle');
     track.setAttribute('cx', '50');
     track.setAttribute('cy', '50');
     track.setAttribute('r', '38');

@@ -6,9 +6,10 @@
 [![PWA Ready](https://img.shields.io/badge/PWA-Offline_Ready-5A67D8?logo=pwa&logoColor=white)](https://developer.mozilla.org/en-US/docs/Web/Progressive_web_apps)
 [![Base Currency](https://img.shields.io/badge/Base_Currency-Configurable_(INR_Default)-10B981)](#-configurable-base-currency--multi-currency-engine)
 [![Categories](https://img.shields.io/badge/Categories-16_Presets_Customizable-blue)](#-customizable-trip-categories--payment-modes)
+[![Theme](https://img.shields.io/badge/Theme-Dark_%26_Light_Mode-informational)](#-light--dark-mode-for-outdoor-sunlight)
 [![Test Suite](https://img.shields.io/badge/Unit_Tests-100%25_Passing-brightgreen)](test/core.test.js)
 
-A lightweight, mobile-first, privacy-focused Progressive Web Application (PWA) designed for tracking vacation expenses in real-time. It connects directly to your private Google Sheets using a Google Apps Script Web App bridge, supporting configurable trip base currencies (defaulting to Indian Rupee ₹), 16 customizable travel expense categories, customizable payment modes, foreign currency conversion, offline queueing with auto-sync, one-tap family share links with permission locks, and interactive visual breakdown charts (Bar & Donut).
+A lightweight, mobile-first, privacy-focused Progressive Web Application (PWA) designed for tracking vacation expenses in real-time. It connects directly to your private Google Sheets using a Google Apps Script Web App bridge, supporting configurable trip base currencies (defaulting to Indian Rupee ₹), 16 customizable travel expense categories, customizable payment modes, foreign currency conversion, offline queueing with auto-sync, one-tap family share links with permission locks, interactive visual breakdown charts (Bar & Donut), and an outdoor-optimized Light Mode toggle.
 
 ---
 
@@ -54,6 +55,10 @@ Use these direct links to access the required cloud consoles and services:
   * 9 preset payment modes: Cash, UPI / GPay, Credit Card, Debit Card, Forex Card, Apple Pay / Google Pay, Net Banking / Wire, Transit Card, Other.
   * Sleek, compact 3-column category grid (~44px touch targets) on mobile with instant auto-save upon toggling presets in Settings.
   * Quick `⚙️ Customize` shortcuts directly next to Category and Payment Mode headers for trip creators.
+* **Outdoor-Ready Light & Dark Mode:**
+  * Clean, high-contrast Light Mode engineered specifically for bright outdoor sunlight and beach environments.
+  * Preserves dark mode as the default experience with a 1-tap header toggle (`☀️` / `🌙`), anti-FOUC inline loading, and persistent preference storage in `localStorage`.
+  * Dynamic `<meta name="theme-color">` updates ensure mobile browser status bars blend smoothly in both light (`#f8fafc`) and dark (`#0f172a`) modes.
 * **Offline-First Resilience:**
   * Service Worker (`sw.js`) caches all application shell assets for instant offline booting.
   * Expenses logged without cell service are stored in a local queue and automatically flushed to Google Sheets when internet connectivity returns.
