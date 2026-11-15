@@ -80,6 +80,14 @@ Open your Travel Expense Tracker app and click the **Settings Icon** (⚙️):
 4. **Secret Passcode:** Enter the `API_SECRET` you set in Step 2.
 5. Click **Save Trip Settings**.
 
+### Updating Existing Deployments for Full PDF Export:
+If you previously deployed `Code.gs`, you can update your script with the latest version in this repository to unlock complete multi-page PDF history export:
+1. Copy the updated [`Code.gs`](./Code.gs) into your Apps Script editor.
+2. In the top right, click **Deploy** > **Manage deployments**.
+3. Select your active deployment and click the **Pencil Icon** (✏️ **Edit**).
+4. Under **Version**, select **New version**.
+5. Click **Deploy**. Your existing Web App URL remains the exact same!
+
 ### Family Sharing & Permissions:
 * Click **"Copy Family Share Link"** to send the link to family or travel companions.
 * **Automatic Protection:** Family members opening the link are assigned **Member Access** — they can log expenses and use the synced participant tags, but core settings (Sheet ID, Script URL, Passcode) are **locked** to prevent accidental modifications!

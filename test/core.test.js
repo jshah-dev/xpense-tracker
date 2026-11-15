@@ -11,6 +11,7 @@ global.localStorage = {
 };
 
 const { Storage, StorageKeys, DEFAULT_PAID_BY, DEFAULT_CATEGORIES, DEFAULT_PAYMENT_MODES } = require('../public/js/storage.js');
+global.Storage = Storage;
 
 console.log('--- Running Core Unit & Integration Tests ---');
 
@@ -307,4 +308,185 @@ assert.ok(mockServerSummary.paidByBreakdown['Self'] > 0);
 assert.ok(mockServerSummary.paymentModeBreakdown['Credit Card'] > 0);
 assert.strictEqual(mockServerSummary.totalCount, 4);
 
-console.log('\nAll Unit & Integration Tests Passed Successfully! ✅');
+// 12. PDF Export Report Engine & Multi-Basis Aggregation Tests
+console.log('12. Testing PDF Export Engine & Multi-Basis Aggregations...');
+const { ReportExport } = require('../public/js/report-export.js');
+const { SheetsAPI } = require('../public/js/sheets-api.js');
+
+const exportSampleTxns = [
+  { id: 'tx_1', date: '2026-11-01', description: 'Flight Ticket', category: 'Travel Tickets', paidBy: 'Self', paymentMode: 'Credit Card', amountINR: 12000, originalAmount: 12000, currency: 'INR' },
+  { id: 'tx_2', date: '2026-11-03', description: 'Beach Resort', category: 'Stay & Hotel', paidBy: 'Partner', paymentMode: 'Net Banking / Wire', amountINR: 15000, originalAmount: 15000, currency: 'INR' },
+  { id: 'tx_3', date: '2026-11-05', description: 'Seafood Dinner', category: 'Food & Dining', paidBy: 'Self', paymentMode: 'UPI / GPay', amountINR: 3200, originalAmount: 3200, currency: 'INR' },
+  { id: 'tx_4', date: '2026-11-08', description: 'Scooter Rental', category: 'Rentals & Gear', paidBy: 'Dad', paymentMode: 'Cash', amountINR: 1800, originalAmount: 1800, currency: 'INR' },
+  { id: 'tx_5', date: '2026-11-10', description: 'Cafe & Drinks', category: 'Food & Dining', paidBy: 'Partner', paymentMode: 'Cash', amountINR: 850, originalAmount: 850, currency: 'INR' }
+];
+
+// Test Category Aggregation
+const catAgg = ReportExport.aggregateBreakdown(exportSampleTxns, 'category');
+assert.strictEqual(catAgg.total, 32850);
+assert.strictEqual(catAgg.breakdown['Food & Dining'], 4050);
+assert.strictEqual(catAgg.breakdown['Stay & Hotel'], 15000);
+assert.strictEqual(catAgg.breakdown['Travel Tickets'], 12000);
+assert.strictEqual(catAgg.breakdown['Rentals & Gear'], 1800);
+
+// Test Payment Mode Aggregation
+const payAgg = ReportExport.aggregateBreakdown(exportSampleTxns, 'payment');
+assert.strictEqual(payAgg.total, 32850);
+assert.strictEqual(payAgg.breakdown['Credit Card'], 12000);
+assert.strictEqual(payAgg.breakdown['Net Banking / Wire'], 15000);
+assert.strictEqual(payAgg.breakdown['Cash'], 2650);
+assert.strictEqual(payAgg.breakdown['UPI / GPay'], 3200);
+
+// Test Paid By Aggregation
+const userAgg = ReportExport.aggregateBreakdown(exportSampleTxns, 'user');
+assert.strictEqual(userAgg.total, 32850);
+assert.strictEqual(userAgg.breakdown['Self'], 15200);
+assert.strictEqual(userAgg.breakdown['Partner'], 15850);
+assert.strictEqual(userAgg.breakdown['Dad'], 1800);
+
+// 13. Testing Transaction Sorting (Default: Date Oldest First / Chronological)
+console.log('13. Testing Transaction Sorting (Oldest First Default & Options)...');
+const shuffled = [exportSampleTxns[3], exportSampleTxns[0], exportSampleTxns[4], exportSampleTxns[1], exportSampleTxns[2]];
+
+// Chronological sort (oldest first - default as reviewed by user)
+const sortedOldest = [...shuffled].sort((a, b) => new Date(a.date || 0) - new Date(b.date || 0));
+assert.strictEqual(sortedOldest[0].id, 'tx_1'); // 2026-11-01
+assert.strictEqual(sortedOldest[1].id, 'tx_2'); // 2026-11-03
+assert.strictEqual(sortedOldest[2].id, 'tx_3'); // 2026-11-05
+assert.strictEqual(sortedOldest[3].id, 'tx_4'); // 2026-11-08
+assert.strictEqual(sortedOldest[4].id, 'tx_5'); // 2026-11-10
+
+// Newest first sort
+const sortedNewest = [...shuffled].sort((a, b) => new Date(b.date || 0) - new Date(a.date || 0));
+assert.strictEqual(sortedNewest[0].id, 'tx_5'); // 2026-11-10
+assert.strictEqual(sortedNewest[4].id, 'tx_1'); // 2026-11-01
+
+// Amount Highest First sort
+const sortedAmount = [...shuffled].sort((a, b) => (Number(b.amountINR) || 0) - (Number(a.amountINR) || 0));
+assert.strictEqual(sortedAmount[0].id, 'tx_2'); // 15,000
+assert.strictEqual(sortedAmount[1].id, 'tx_1'); // 12,000
+assert.strictEqual(sortedAmount[4].id, 'tx_5'); // 850
+
+// 14. Testing SheetsAPI.fetchAllTransactions Backward Compatibility & Offline Merging
+console.log('14. Testing SheetsAPI.fetchAllTransactions Backward Compatibility & Offline Merging...');
+
+(async () => {
+  const originalFetch = global.fetch;
+
+  // Case A: Modern Apps Script returning allTransactions
+  global.fetch = async () => ({
+    json: async () => ({
+      status: 'success',
+      data: {
+        tripName: 'Thailand 2026',
+        totalSpendINR: 32850,
+        totalCount: 5,
+        allTransactions: exportSampleTxns,
+        recentTransactions: exportSampleTxns.slice(-2)
+      }
+    })
+  });
+
+  const tripConfig = {
+    id: 'trip_full_test',
+    name: 'Thailand 2026',
+    sheetId: 'test_sheet_123',
+    scriptUrl: 'https://script.google.com/test',
+    secret: 'test_passcode'
+  };
+
+  const resultFull = await SheetsAPI.fetchAllTransactions(tripConfig);
+  assert.strictEqual(resultFull.isPartial, false);
+  assert.strictEqual(resultFull.transactions.length, 5);
+  assert.strictEqual(resultFull.transactions[0].id, 'tx_1');
+
+  // Case B: Legacy Apps Script returning only recentTransactions (15 items) with higher totalCount
+  global.fetch = async () => ({
+    json: async () => ({
+      status: 'success',
+      data: {
+        tripName: 'Thailand 2026',
+        totalSpendINR: 100000,
+        totalCount: 42,
+        // allTransactions is undefined in legacy Apps Script!
+        recentTransactions: exportSampleTxns.slice(0, 3)
+      }
+    })
+  });
+
+  const resultLegacy = await SheetsAPI.fetchAllTransactions(tripConfig);
+  assert.strictEqual(resultLegacy.isPartial, true);
+  assert.strictEqual(resultLegacy.transactions.length, 3);
+  assert.strictEqual(resultLegacy.totalCount, 42);
+
+  // Case C: Offline pending transactions merged seamlessly
+  Storage.enqueueOffline(tripConfig.id, {
+    id: 'tx_offline_pending',
+    date: '2026-11-12',
+    paidBy: 'Self',
+    category: 'Shopping',
+    description: 'Souvenir gifts',
+    amountInINR: 950,
+    originalAmount: 950,
+    currency: 'INR',
+    paymentMode: 'Cash'
+  });
+
+  const resultWithOffline = await SheetsAPI.fetchAllTransactions(tripConfig);
+  const foundPending = resultWithOffline.transactions.find(t => t.id === 'tx_offline_pending');
+  assert.ok(foundPending, 'Pending offline expense should be merged into export payload');
+  assert.strictEqual(foundPending.amountINR, 950);
+
+  // Restore fetch
+  global.fetch = originalFetch;
+
+  // 15. Testing Filename Sanitization & Color Conversion
+  console.log('15. Testing Filename Sanitization & Color Conversion...');
+  assert.strictEqual(ReportExport.sanitizeFilename('Goa & Bali Trip / 2026!'), 'Goa_Bali_Trip_2026_');
+  assert.strictEqual(ReportExport.sanitizeFilename('Europe Trip 2026'), 'Europe_Trip_2026');
+  assert.deepStrictEqual(ReportExport.hexToRgb('#2563eb'), { r: 37, g: 99, b: 235 });
+  assert.deepStrictEqual(ReportExport.hexToRgb('#fff'), { r: 255, g: 255, b: 255 });
+
+  // 16. Testing PDF-Safe Currency Formatting & Complete Category Retention
+  console.log('16. Testing PDF-Safe Currency Formatting & Complete Category Retention...');
+  const inrFormatted = ReportExport.formatPdfCurrency(18450.5, 'INR');
+  assert.strictEqual(inrFormatted, '₹ 18,450.50');
+  assert.ok(inrFormatted.startsWith('₹ '), 'INR formatted string must start with Rupee symbol ₹');
+
+  // Verify Rupee icon generator produces non-empty data URL
+  const rupeeIconUrl = ReportExport.getRupeeIconDataUrl('#2563eb');
+  assert.ok(typeof rupeeIconUrl === 'string' && rupeeIconUrl.startsWith('data:image/png;base64,'), 'Rupee icon URL must be a valid base64 PNG');
+
+  const usdFormatted = ReportExport.formatPdfCurrency(120.75, 'USD');
+  assert.strictEqual(usdFormatted, '$ 120.75');
+  for (let i = 0; i < usdFormatted.length; i++) {
+    assert.ok(usdFormatted.charCodeAt(i) <= 255, `Character ${usdFormatted[i]} should be ASCII/WinAnsi`);
+  }
+
+  const eurFormatted = ReportExport.formatPdfCurrency(95, 'EUR');
+  assert.strictEqual(eurFormatted, 'EUR 95.00');
+
+  const jpyFormatted = ReportExport.formatPdfCurrency(5000, 'JPY');
+  assert.strictEqual(jpyFormatted, 'JPY 5,000');
+
+  // Verify that an extensive list of 10+ categories are all preserved in breakdown aggregation
+  const multiCatTxns = [
+    { category: 'Food & Dining', amountINR: 1000 },
+    { category: 'Travel Tickets', amountINR: 2000 },
+    { category: 'Fuel & Tolls', amountINR: 500 },
+    { category: 'Stay & Hotel', amountINR: 4000 },
+    { category: 'Tickets & Activities', amountINR: 1500 },
+    { category: 'Shopping', amountINR: 3000 },
+    { category: 'Local Transport / Cabs', amountINR: 800 },
+    { category: 'Public Transport', amountINR: 300 },
+    { category: 'Souvenirs', amountINR: 600 },
+    { category: 'Groceries & Supplies', amountINR: 1200 },
+    { category: 'Drinks & Cafe', amountINR: 450 }
+  ];
+  const fullCatAgg = ReportExport.aggregateBreakdown(multiCatTxns, 'category');
+  const catKeys = Object.keys(fullCatAgg.breakdown).filter(k => fullCatAgg.breakdown[k] > 0);
+  assert.strictEqual(catKeys.length, 11, 'All 11 categories must be retained and not capped');
+  assert.strictEqual(fullCatAgg.total, 15350);
+
+  console.log('\nAll Unit & Integration Tests Passed Successfully! ✅');
+})();

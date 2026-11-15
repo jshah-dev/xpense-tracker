@@ -157,8 +157,11 @@ function setTripConfig(spreadsheet, newConfig) {
 /**
  * Computes full live trip summary data, multi-basis breakdowns, and recent transactions.
  * Shared between doGet and doPost to guarantee synchronized ledger data.
+ * @param {Spreadsheet} spreadsheet
+ * @param {string} [requestedSheetName]
+ * @param {boolean} [includeAllTransactions=false] When true, includes all transactions in chronological order.
  */
-function getTripSummaryData(spreadsheet, requestedSheetName) {
+function getTripSummaryData(spreadsheet, requestedSheetName, includeAllTransactions) {
   var sheet = getExpenseSheet(spreadsheet, requestedSheetName);
   var participants = getParticipantsList(spreadsheet);
   var config = getTripConfig(spreadsheet);
@@ -167,7 +170,7 @@ function getTripSummaryData(spreadsheet, requestedSheetName) {
 
   // If sheet has only header row or is blank
   if (data.length <= 1) {
-    return {
+    var emptyResult = {
       tripName: spreadsheet.getName(),
       totalSpendINR: 0,
       totalCount: 0,
@@ -178,6 +181,10 @@ function getTripSummaryData(spreadsheet, requestedSheetName) {
       participants: participants,
       config: config
     };
+    if (includeAllTransactions) {
+      emptyResult.allTransactions = [];
+    }
+    return emptyResult;
   }
 
   var totalSpendINR = 0;
@@ -186,7 +193,7 @@ function getTripSummaryData(spreadsheet, requestedSheetName) {
   var paymentModeBreakdown = {};
   var allTransactions = [];
 
-  // Row 0 is headers; iterate from row 1 to the end
+  // Row 0 is headers; iterate from row 1 to the end (chronological order)
   for (var i = 1; i < data.length; i++) {
     var row = data[i];
     var txnId = String(row[0] || "").trim();
@@ -230,11 +237,11 @@ function getTripSummaryData(spreadsheet, requestedSheetName) {
     });
   }
 
-  // Sort recent in reverse chronological order and take latest 15
-  allTransactions.reverse();
-  var latestTransactions = allTransactions.slice(0, 15);
+  // Sort recent in reverse chronological order and take latest 15 (unchanged behavior)
+  var reversedForRecent = allTransactions.slice().reverse();
+  var latestTransactions = reversedForRecent.slice(0, 15);
 
-  return {
+  var summaryResult = {
     tripName: spreadsheet.getName(),
     totalSpendINR: Math.round(totalSpendINR * 100) / 100,
     totalCount: allTransactions.length,
@@ -245,10 +252,18 @@ function getTripSummaryData(spreadsheet, requestedSheetName) {
     participants: participants,
     config: config
   };
+
+  // If full ledger requested, attach allTransactions (chronological: oldest first)
+  if (includeAllTransactions) {
+    summaryResult.allTransactions = allTransactions;
+  }
+
+  return summaryResult;
 }
 
 /**
  * GET Handler: Fetches live trip summary, multi-basis breakdowns, recent ledger entries, and synced config.
+ * Supports action="getAllTransactions" for complete ledger export while preserving action="getSummary" (default).
  */
 function doGet(e) {
   try {
@@ -273,7 +288,10 @@ function doGet(e) {
     }
 
     var spreadsheet = SpreadsheetApp.openById(params.sheetId);
-    var summaryData = getTripSummaryData(spreadsheet, params.sheetName);
+
+    // If getAllTransactions is explicitly requested, return allTransactions in data
+    var shouldIncludeAll = (params.action === "getAllTransactions" || params.all === "true");
+    var summaryData = getTripSummaryData(spreadsheet, params.sheetName, shouldIncludeAll);
 
     return jsonResponse({
       status: "success",

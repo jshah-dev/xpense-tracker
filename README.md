@@ -3,10 +3,11 @@
 [![Firebase Hosting](https://img.shields.io/badge/Firebase_Hosting-Spark_Free_Tier-FFA611?logo=firebase&logoColor=white)](https://console.firebase.google.com)
 [![Google Sheets](https://img.shields.io/badge/Google_Sheets-Direct_Cloud_Database-34A853?logo=googlesheets&logoColor=white)](https://sheets.new)
 [![Google Apps Script](https://img.shields.io/badge/Google_Apps_Script-Serverless_API_Bridge-4285F4?logo=google&logoColor=white)](https://script.google.com)
-[![PWA Ready](https://img.shields.io/badge/PWA-Offline_Ready-5A67D8?logo=pwa&logoColor=white)](https://developer.mozilla.org/en-US/docs/Web/Progressive_web_apps)
+[![PWA Ready](https://img.shields.io/badge/PWA-v26_Auto--Update-5A67D8?logo=pwa&logoColor=white)](https://developer.mozilla.org/en-US/docs/Web/Progressive_web_apps)
+[![PDF Reports](https://img.shields.io/badge/PDF_Reports-Vector_%26_A4_Printable-red?logo=adobeacrobatreader&logoColor=white)](#-interactive-pdf-trip-report-export)
 [![Base Currency](https://img.shields.io/badge/Base_Currency-Configurable_(INR_Default)-10B981)](#-configurable-base-currency--multi-currency-engine)
 [![Categories](https://img.shields.io/badge/Categories-16_Presets_Customizable-blue)](#-customizable-trip-categories--payment-modes)
-[![Theme](https://img.shields.io/badge/Theme-Dark_%26_Light_Mode-informational)](#-light--dark-mode-for-outdoor-sunlight)
+[![Theme](https://img.shields.io/badge/Theme-Dark_%26_Light_Mode-informational)](#-outdoor-ready-light--dark-mode)
 [![Test Suite](https://img.shields.io/badge/Unit_Tests-100%25_Passing-brightgreen)](test/core.test.js)
 
 A lightweight, mobile-first, privacy-focused Progressive Web Application (PWA) designed for tracking vacation expenses in real-time. It connects directly to your private Google Sheets using a Google Apps Script Web App bridge, supporting configurable trip base currencies (defaulting to Indian Rupee ₹), 16 customizable travel expense categories, customizable payment modes, foreign currency conversion, offline queueing with auto-sync, one-tap family share links with permission locks, interactive visual breakdown charts (Bar & Donut), and an outdoor-optimized Light Mode toggle.
@@ -57,12 +58,26 @@ Use these direct links to access the required cloud consoles and services:
   * 9 preset payment modes: Cash, UPI / GPay, Credit Card, Debit Card, Forex Card, Apple Pay / Google Pay, Net Banking / Wire, Transit Card, Other.
   * Sleek, compact 3-column category grid (~44px touch targets) on mobile with instant auto-save upon toggling presets in Settings.
   * Quick `⚙️ Customize` shortcuts directly next to Category and Payment Mode headers for trip creators.
+* **Interactive PDF Trip Report Export:**
+  * **100% Client-Side Lightweight Vector PDFs:** Powered by `jspdf` and `jspdf-autotable`. Produces featherlight (~40–80 KB), high-resolution vector PDF documents where text is sharp at 1000% zoom, searchable, and selectable. Zero heavy Node/Puppeteer server requirements.
+  * **Official Indian Rupee Logo (`₹`):** Generates high-DPI canvas glyph vector images for the authentic Indian Rupee symbol (`₹`), replacing generic `Rs.` notations without running into WinAnsi PDF encoding limitations.
+  * **Page 1 (Executive Summary & Multi-Basis Breakup Charts):** Includes clean minimal header banner, trip KPI metric cards (Total Spend, Count, Base Currency, Date Span), high-DPI Donut Charts, and complete multi-column breakdown tables displaying **100% of categories** (no 5-item cutoff) beside Category Donut, alongside Payment Mode and Paid By / Member side-by-side. Engineered to strictly fit within A4 printable height (~145 mm used of 277 mm).
+  * **Page 2+ (Detailed Transactions Ledger):** Professional auto-paginated table listing all expenses chronologically (**Date Oldest First** by default) with automatic multi-page wrapping, repeating headers with `Amount (₹)`, and page numbers ("Page X of Y").
+  * **Quick Utilities Row:** Dedicated "Report" button with SVG icon and "Open Sheet" link placed directly above Recent Transactions for clean access in both Dark and Light themes.
+  * **Interactive In-App Modal:** Includes real-time live preview before downloading, date range filters (All Time, Last 7 Days, Last 30 Days, Custom Range), sorting options, chart section toggles, and direct browser print fallback.
+  * **Backward-Compatible Multi-Page Ledger Sync:** Google Apps Script `doGet` supports `action=getAllTransactions` while remaining 100% backward-compatible with existing deployments.
+* **Seamless Mobile PWA Version Updates (Zero Cost Impact):**
+  * **Network-First HTML Navigation:** Navigations (`/` and `/index.html`) use a Network-First strategy with a 2.5s network race timeout and instant cache fallback. Mobile devices load the latest app version on the very first visit without needing 2–3 manual refreshes.
+  * **Zero Hosting Cost Impact:** HTML documents are ~4–5 KB gzipped and conditional `/sw.js` checks return lightweight HTTP 304 responses. Monthly data transfer is <2 MB (~0.02% of Firebase's 10 GB free Spark tier).
+  * **Smooth `controllerchange` Reload:** Automatically reloads once when the new Service Worker activates, protecting against data loss if an expense is actively being typed into the form.
+  * **Foreground Re-check on Resume:** App re-checks for new updates on `visibilitychange` whenever returning to the tab or unlocking phone.
+  * **In-App Update Banner & Settings Checker:** Displays a 1-tap `"✨ New version available! [Update Now]"` notification banner and includes an in-app **"Check for Updates"** button in Settings, giving mobile users a native-app-like manual update mechanism.
 * **Outdoor-Ready Light & Dark Mode:**
   * Clean, high-contrast Light Mode engineered specifically for bright outdoor sunlight and beach environments.
   * Preserves dark mode as the default experience with a 1-tap header toggle (`☀️` / `🌙`), anti-FOUC inline loading, and persistent preference storage in `localStorage`.
   * Dynamic `<meta name="theme-color">` updates ensure mobile browser status bars blend smoothly in both light (`#f8fafc`) and dark (`#0f172a`) modes.
 * **Offline-First Resilience:**
-  * Service Worker (`sw.js`) caches all application shell assets for instant offline booting.
+  * Service Worker (`sw.js`) pre-caches all application shell assets, fonts, icons, and PDF generation scripts for instant offline booting and report generation.
   * Expenses logged without cell service are stored in a local queue and automatically flushed to Google Sheets when internet connectivity returns.
 
 ---
@@ -84,6 +99,7 @@ xpense-tracker/
 │   │   └── style.css            # Mobile safe-area insets, touch targets, transitions
 │   ├── js/
 │   │   ├── app.js               # Application orchestrator, event bindings & charts
+│   │   ├── report-export.js     # Client-side vector PDF generator & interactive modal
 │   │   ├── storage.js           # Multi-trip manager, offline queue, participant tags
 │   │   ├── sheets-api.js        # Google Apps Script client dispatcher (text/plain CORS)
 │   │   └── currency.js          # INR formatting, multi-currency conversion math

@@ -77,6 +77,17 @@
       </div>
     </header>
 
+    <!-- New Version Available Banner (Hidden by default) -->
+    <div id="update-banner" class="hidden mt-3 p-2.5 bg-blue-600/15 border border-blue-500/40 rounded-xl flex items-center justify-between text-xs text-blue-300">
+      <div class="flex items-center space-x-2">
+        <span class="text-sm">✨</span>
+        <span id="update-banner-text" class="font-medium">New version available!</span>
+      </div>
+      <button id="update-reload-btn" type="button" class="px-2.5 py-1 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-lg active:scale-95 transition shadow-sm">
+        Update Now
+      </button>
+    </div>
+
     <!-- Offline & Pending Sync Banner (Hidden by default) -->
     <div id="sync-banner" class="hidden mt-3 p-2.5 bg-amber-500/10 border border-amber-500/30 rounded-xl flex items-center justify-between text-xs text-amber-300">
       <div class="flex items-center space-x-2">
@@ -327,8 +338,38 @@
       </form>
     </section>
 
+    <!-- Quick Utilities Row: Report & Open Sheet (Above Recent Transactions) -->
+    <div class="mt-6 mb-2 flex items-center justify-between">
+      <!-- Report Action Button -->
+      <button
+        id="export-report-btn"
+        type="button"
+        class="h-8 px-3 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-semibold text-xs active:scale-95 transition flex items-center space-x-1.5 shadow-md shadow-blue-600/25 border border-blue-500/40"
+        title="View & Export Trip PDF Report"
+      >
+        <svg class="w-3.5 h-3.5 text-white flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+        </svg>
+        <span>Report</span>
+      </button>
+
+      <!-- Open Sheet Link Button -->
+      <a
+        id="open-sheet-link"
+        href="#"
+        target="_blank"
+        class="hidden h-8 px-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 active:scale-95 transition flex items-center space-x-1.5 text-xs font-semibold shadow-sm"
+        title="Open Google Sheet in new tab"
+      >
+        <svg class="w-3.5 h-3.5 text-emerald-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+        </svg>
+        <span>Open Sheet</span>
+      </a>
+    </div>
+
     <!-- Recent Expenses Feed -->
-    <section class="mt-8 pb-8">
+    <section class="mt-2 pb-8">
       <div class="flex items-center justify-between mb-3">
         <div class="flex items-center space-x-2">
           <h2 class="text-sm font-bold uppercase tracking-wider text-slate-300">Recent Transactions</h2>
@@ -346,13 +387,6 @@
             </svg>
           </button>
         </div>
-
-        <a id="open-sheet-link" href="#" target="_blank" class="hidden text-xs text-blue-400 hover:underline flex items-center space-x-1">
-          <span>Open Sheet</span>
-          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-          </svg>
-        </a>
       </div>
 
       <!-- Collapsible Container for Transactions (Hidden by default for clean view) -->
@@ -593,6 +627,25 @@
         </button>
       </div>
 
+      <!-- App Version & Update Utility -->
+      <div id="settings-app-version-card" class="mt-4 p-3 rounded-xl bg-slate-800/80 border border-slate-700 flex items-center justify-between text-xs">
+        <div>
+          <span class="font-semibold text-slate-200 block">XPense Tracker</span>
+          <span id="app-version-label" class="text-[11px] text-slate-400">Version v26</span>
+        </div>
+        <button
+          id="check-update-btn"
+          type="button"
+          class="h-8 px-3 rounded-lg bg-slate-700 hover:bg-slate-650 active:scale-95 text-slate-200 text-xs font-semibold transition flex items-center space-x-1.5 border border-slate-600 shadow-sm"
+          title="Check for newest version"
+        >
+          <svg id="check-update-icon" class="w-3.5 h-3.5 text-blue-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+          </svg>
+          <span id="check-update-text">Check for Updates</span>
+        </button>
+      </div>
+
       <!-- Delete Trip Option -->
       <div class="pt-2">
         <button
@@ -607,6 +660,184 @@
     </div>
   </div>
 
+  <!-- Interactive Export Report Modal -->
+  <div id="export-modal" class="fixed inset-0 z-50 bg-black/60 modal-backdrop hidden flex items-end sm:items-center justify-center sm:p-4">
+    <div class="bg-slate-850 border border-slate-750 rounded-t-3xl sm:rounded-2xl max-w-lg w-full p-5 max-h-[92vh] overflow-y-auto shadow-2xl space-y-4">
+
+      <!-- Modal Header -->
+      <div class="flex items-center justify-between pb-3 border-b border-slate-750">
+        <div class="flex items-center space-x-2 min-w-0">
+          <span class="text-xl">📊</span>
+          <div class="min-w-0">
+            <h3 class="font-bold text-slate-100 text-base sm:text-lg leading-tight">Export Trip Report</h3>
+            <span id="export-trip-name-badge" class="text-[11px] text-blue-400 font-semibold truncate block">Trip Report</span>
+          </div>
+        </div>
+        <button id="close-export-modal-btn" class="w-8 h-8 rounded-full bg-slate-750 flex items-center justify-center text-slate-300 hover:text-white transition flex-shrink-0">✕</button>
+      </div>
+
+      <!-- Backward Compatibility Info Notice (Hidden by default, shown if partial) -->
+      <div id="export-script-notice" class="hidden p-3 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-300 text-xs flex items-start space-x-2">
+        <span class="text-base flex-shrink-0">ℹ️</span>
+        <div class="flex-1">
+          <span class="font-bold block">Partial Ledger (Recent 15 Transactions)</span>
+          <span id="export-script-notice-text">Showing the 15 most recent transactions. Re-deploy Google Apps Script to export your complete multi-page ledger.</span>
+        </div>
+      </div>
+
+      <!-- Executive Live Summary Card -->
+      <div class="p-3.5 rounded-2xl bg-gradient-to-br from-slate-800 to-slate-850 border border-slate-750 space-y-2.5">
+        <div class="flex items-center justify-between">
+          <span class="text-xs uppercase tracking-wider text-slate-400 font-semibold">Report Summary</span>
+          <span id="export-ledger-badge" class="text-[10px] px-2 py-0.5 rounded-full font-bold bg-emerald-500/20 text-emerald-300">Full Ledger</span>
+        </div>
+        <div class="grid grid-cols-2 gap-2 text-xs">
+          <div class="p-2 rounded-xl bg-slate-900/60 border border-slate-750/70">
+            <span class="text-[10px] text-slate-400 block">Total Spend</span>
+            <span id="export-metric-total" class="font-extrabold text-white text-base">₹ 0.00</span>
+          </div>
+          <div class="p-2 rounded-xl bg-slate-900/60 border border-slate-750/70">
+            <span class="text-[10px] text-slate-400 block">Expenses Count</span>
+            <span id="export-metric-count" class="font-bold text-slate-200 text-base">0 items</span>
+          </div>
+          <div class="p-2 rounded-xl bg-slate-900/60 border border-slate-750/70 col-span-2 flex items-center justify-between">
+            <div>
+              <span class="text-[10px] text-slate-400 block">Date Range</span>
+              <span id="export-metric-dates" class="font-medium text-slate-300 text-xs">All Recorded Dates</span>
+            </div>
+            <div class="text-right">
+              <span class="text-[10px] text-slate-400 block">Base Currency</span>
+              <span id="export-metric-currency" class="font-semibold text-blue-400 text-xs">INR (₹)</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Filter & Customization Controls -->
+      <div class="space-y-3">
+        <h4 class="text-xs font-bold uppercase tracking-wider text-slate-300">Report Customization</h4>
+
+        <!-- Date Range Filter -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+          <div>
+            <label for="export-date-filter" class="block text-[11px] font-semibold text-slate-400 mb-1">Date Scope</label>
+            <select
+              id="export-date-filter"
+              class="w-full h-10 px-2.5 bg-slate-800 text-slate-100 text-xs rounded-xl border border-slate-700 focus:outline-none focus:ring-1 focus:ring-blue-500 font-medium"
+            >
+              <option value="all" selected>All Transactions</option>
+              <option value="last7">Last 7 Days</option>
+              <option value="last30">Last 30 Days</option>
+              <option value="custom">Custom Date Range...</option>
+            </select>
+          </div>
+
+          <!-- Transaction Sort (Default: Oldest First as requested by user) -->
+          <div>
+            <label for="export-sort-by" class="block text-[11px] font-semibold text-slate-400 mb-1">Transaction Order</label>
+            <select
+              id="export-sort-by"
+              class="w-full h-10 px-2.5 bg-slate-800 text-slate-100 text-xs rounded-xl border border-slate-700 focus:outline-none focus:ring-1 focus:ring-blue-500 font-medium"
+            >
+              <option value="date-asc" selected>Date: Oldest First (Chronological)</option>
+              <option value="date-desc">Date: Newest First</option>
+              <option value="amount-desc">Amount: Highest First</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Custom Date Range Inputs (Hidden unless "custom" selected) -->
+        <div id="export-custom-dates" class="hidden grid grid-cols-2 gap-2 pt-1">
+          <div>
+            <label for="export-start-date" class="block text-[10px] font-semibold text-slate-400 mb-1">From Date</label>
+            <input
+              id="export-start-date"
+              type="date"
+              class="w-full h-9 px-2 bg-slate-800 text-slate-100 text-xs rounded-lg border border-slate-700 focus:outline-none focus:ring-1 focus:ring-blue-500"
+            />
+          </div>
+          <div>
+            <label for="export-end-date" class="block text-[10px] font-semibold text-slate-400 mb-1">To Date</label>
+            <input
+              id="export-end-date"
+              type="date"
+              class="w-full h-9 px-2 bg-slate-800 text-slate-100 text-xs rounded-lg border border-slate-700 focus:outline-none focus:ring-1 focus:ring-blue-500"
+            />
+          </div>
+        </div>
+
+        <!-- Breakdown Charts Toggles (Page 1) -->
+        <div class="p-3 rounded-xl bg-slate-800/80 border border-slate-750 space-y-2">
+          <span class="text-[11px] font-bold uppercase tracking-wider text-slate-300 block">Page 1: Breakup Charts</span>
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs">
+            <label class="flex items-center space-x-2 text-slate-300 cursor-pointer">
+              <input id="export-include-category" type="checkbox" checked class="w-4 h-4 rounded text-blue-600 bg-slate-900 border-slate-700 focus:ring-blue-500" />
+              <span>Category</span>
+            </label>
+            <label class="flex items-center space-x-2 text-slate-300 cursor-pointer">
+              <input id="export-include-payment" type="checkbox" checked class="w-4 h-4 rounded text-blue-600 bg-slate-900 border-slate-700 focus:ring-blue-500" />
+              <span>Payment Mode</span>
+            </label>
+            <label class="flex items-center space-x-2 text-slate-300 cursor-pointer">
+              <input id="export-include-paidby" type="checkbox" checked class="w-4 h-4 rounded text-blue-600 bg-slate-900 border-slate-700 focus:ring-blue-500" />
+              <span>Paid By</span>
+            </label>
+          </div>
+        </div>
+
+        <!-- Table Option (Page 2+) -->
+        <div class="px-3 py-2.5 rounded-xl bg-slate-800/80 border border-slate-750 flex items-center justify-between">
+          <div>
+            <span class="text-xs font-semibold text-slate-200 block">Page 2+: Detailed Transactions Ledger</span>
+            <span class="text-[10px] text-slate-400">Include multi-page tabular list of all expenses</span>
+          </div>
+          <input id="export-include-txns" type="checkbox" checked class="w-4 h-4 rounded text-blue-600 bg-slate-900 border-slate-700 focus:ring-blue-500 cursor-pointer" />
+        </div>
+      </div>
+
+      <!-- In-Modal Interactive Live Preview -->
+      <div class="space-y-2 pt-1">
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-bold uppercase tracking-wider text-slate-300">Live Report Preview</span>
+          <span class="text-[10px] text-slate-400">Interactive Summary</span>
+        </div>
+
+        <div id="export-preview-container" class="p-3 rounded-xl bg-slate-900/80 border border-slate-750 space-y-3">
+          <!-- Mini Preview Breakdown Sections populated dynamically -->
+          <div id="export-preview-sections" class="space-y-3 text-xs">
+            <!-- Dynamically populated by ReportExport -->
+          </div>
+        </div>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="pt-2 space-y-2">
+        <button
+          id="download-pdf-btn"
+          type="button"
+          class="w-full py-3.5 bg-blue-600 hover:bg-blue-500 active:scale-[0.98] text-white font-bold text-sm rounded-xl shadow-lg shadow-blue-600/30 transition flex items-center justify-center space-x-2"
+        >
+          <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+          </svg>
+          <span id="download-pdf-btn-text">Download PDF Report</span>
+        </button>
+
+        <button
+          id="print-report-btn"
+          type="button"
+          class="w-full py-2.5 bg-slate-800 hover:bg-slate-750 active:scale-[0.98] text-slate-300 hover:text-slate-100 font-semibold text-xs rounded-xl border border-slate-700 transition flex items-center justify-center space-x-1.5"
+        >
+          <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+          </svg>
+          <span>Print / Save as PDF (Browser)</span>
+        </button>
+      </div>
+
+    </div>
+  </div>
+
   <!-- Toast Notification Banner -->
   <div id="toast" class="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 px-4 py-2.5 rounded-xl bg-slate-800 text-white text-xs font-semibold shadow-2xl border border-slate-700 flex items-center space-x-2 transition-all duration-300 opacity-0 pointer-events-none translate-y-2">
     <span id="toast-icon">✓</span>
@@ -614,9 +845,12 @@
   </div>
 
   <!-- Scripts -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
   <script src="js/currency.js"></script>
   <script src="js/storage.js"></script>
   <script src="js/sheets-api.js"></script>
+  <script src="js/report-export.js"></script>
   <script src="js/app.js"></script>
 </body>
 </html>

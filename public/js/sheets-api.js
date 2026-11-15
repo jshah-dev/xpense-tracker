@@ -54,6 +54,100 @@ const SheetsAPI = {
   },
 
   /**
+   * Fetches all transactions for export from Google Apps Script.
+   * If Apps Script has been updated, returns allTransactions.
+   * If Apps Script is an older deployment, falls back gracefully to recentTransactions.
+   * Merges any pending offline queue transactions so export is 100% complete.
+   */
+  async fetchAllTransactions(trip) {
+    if (!trip || !trip.scriptUrl || !trip.sheetId || !trip.secret) {
+      throw new Error("Trip settings are incomplete. Please configure your Sheet ID, Apps Script URL, and Passcode in Settings.");
+    }
+
+    const query = new URLSearchParams({
+      action: 'getAllTransactions',
+      sheetId: trip.sheetId,
+      secret: trip.secret
+    });
+
+    const url = `${trip.scriptUrl}?${query.toString()}`;
+
+    let serverData = null;
+    let isPartial = false;
+
+    try {
+      const response = await fetch(url, {
+        method: 'GET',
+        redirect: 'follow'
+      });
+
+      const data = await response.json();
+
+      if (data.status === 'error') {
+        throw new Error(data.message || "Failed to fetch transactions from Google Sheets.");
+      }
+
+      serverData = data.data;
+      if (serverData && typeof Storage !== 'undefined' && Storage.setCachedSummary) {
+        Storage.setCachedSummary(trip.id, serverData);
+      }
+    } catch (err) {
+      // Offline fallback: check cached summary
+      const cached = (typeof Storage !== 'undefined' && Storage.getCachedSummary) ? Storage.getCachedSummary(trip.id) : null;
+      if (cached) {
+        serverData = { ...cached, isCached: true, networkError: err.message };
+        isPartial = true;
+      } else {
+        throw err;
+      }
+    }
+
+    let transactions = [];
+    if (serverData && Array.isArray(serverData.allTransactions)) {
+      transactions = [...serverData.allTransactions];
+      isPartial = false;
+    } else if (serverData && Array.isArray(serverData.recentTransactions)) {
+      transactions = [...serverData.recentTransactions];
+      isPartial = (serverData.totalCount || 0) > transactions.length;
+    }
+
+    // Merge offline queued items for this trip not yet in the sheet
+    const offlineQueue = (typeof Storage !== 'undefined' && Storage.getOfflineQueue) ? Storage.getOfflineQueue() : [];
+    const pendingItems = offlineQueue
+      .filter(item => item && item.tripId === trip.id && item.transaction)
+      .map(item => ({
+        id: item.transaction.id,
+        date: item.transaction.date,
+        paidBy: item.transaction.paidBy,
+        category: item.transaction.category,
+        description: item.transaction.description,
+        originalAmount: item.transaction.originalAmount,
+        currency: item.transaction.currency,
+        exchangeRate: item.transaction.exchangeRate || 1,
+        amountINR: item.transaction.amountInINR,
+        paymentMode: item.transaction.paymentMode,
+        loggedAt: item.transaction.loggedAt || new Date().toISOString(),
+        isOfflinePending: true
+      }));
+
+    // Deduplicate by ID
+    const seenIds = new Set(transactions.map(t => String(t.id || '')));
+    pendingItems.forEach(item => {
+      if (item.id && !seenIds.has(String(item.id))) {
+        transactions.push(item);
+        seenIds.add(String(item.id));
+      }
+    });
+
+    return {
+      transactions,
+      summaryData: serverData,
+      isPartial,
+      totalCount: serverData ? (serverData.totalCount || transactions.length) : transactions.length
+    };
+  },
+
+  /**
    * Sends a new expense entry to Google Sheets via Apps Script POST
    * If network is down, automatically queues the item in localStorage.
    */

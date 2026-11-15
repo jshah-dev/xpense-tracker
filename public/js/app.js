@@ -130,12 +130,8 @@ function initApp() {
     dateInput.value = new Date().toISOString().substring(0, 10);
   }
 
-  // 3. Register Service Worker for offline PWA
-  if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('/sw.js').catch(err => {
-      console.warn('Service Worker registration skipped:', err);
-    });
-  }
+  // 3. Initialize Service Worker & Seamless Mobile Update Flow
+  initServiceWorkerUpdateFlow();
 
   // 4. Setup Event Listeners
   setupEventListeners();
@@ -174,6 +170,140 @@ function initApp() {
       refreshTripData();
     }
   }, 60000);
+}
+
+let swRegistration = null;
+
+/**
+ * Initializes Service Worker and Seamless Mobile Update Flow.
+ * Features:
+ * - Detects background updates and prompts user with 1-tap "Update Now" banner.
+ * - Auto-reloads smoothly when new worker activates if no form input is dirty.
+ * - Re-checks for updates on mobile app resume (visibilitychange).
+ * - Connects the "Check for Updates" manual button in Settings.
+ */
+function initServiceWorkerUpdateFlow() {
+  if (typeof navigator === 'undefined' || !('serviceWorker' in navigator)) return;
+
+  const updateBanner = document.getElementById('update-banner');
+  const updateReloadBtn = document.getElementById('update-reload-btn');
+  const checkUpdateBtn = document.getElementById('check-update-btn');
+
+  function showUpdateBanner(worker) {
+    if (updateBanner) {
+      updateBanner.classList.remove('hidden');
+    }
+    if (updateReloadBtn) {
+      updateReloadBtn.onclick = () => {
+        if (worker && worker.postMessage) {
+          worker.postMessage({ action: 'skipWaiting' });
+        }
+        window.location.reload();
+      };
+    }
+  }
+
+  navigator.serviceWorker.register('/sw.js').then((registration) => {
+    swRegistration = registration;
+
+    // 1. If an update is already waiting, show banner immediately
+    if (registration.waiting) {
+      showUpdateBanner(registration.waiting);
+    }
+
+    // 2. Listen for newly detected workers installing
+    registration.addEventListener('updatefound', () => {
+      const installingWorker = registration.installing;
+      if (!installingWorker) return;
+
+      installingWorker.addEventListener('statechange', () => {
+        if (installingWorker.state === 'installed') {
+          if (navigator.serviceWorker.controller) {
+            // New version installed while old version was active
+            showUpdateBanner(installingWorker);
+          }
+        }
+      });
+    });
+
+    // Proactively check for SW updates upon page load
+    registration.update().catch(() => {});
+  }).catch((err) => {
+    console.warn('Service Worker registration skipped:', err);
+  });
+
+  // 3. Smooth reload when new controller takes over
+  let refreshing = false;
+  navigator.serviceWorker.addEventListener('controllerchange', () => {
+    if (refreshing) return;
+    // Don't auto-reload if user is actively entering an expense
+    const amountVal = document.getElementById('amount') ? document.getElementById('amount').value.trim() : '';
+    const descVal = document.getElementById('description') ? document.getElementById('description').value.trim() : '';
+    if (!amountVal && !descVal) {
+      refreshing = true;
+      window.location.reload();
+    } else {
+      showUpdateBanner();
+    }
+  });
+
+  // 4. Proactive update check when returning to app on mobile (tab switch or phone unlock)
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible' && swRegistration && navigator.onLine) {
+      swRegistration.update().catch(() => {});
+    }
+  });
+
+  // 5. Manual "Check for Updates" button in Settings Drawer
+  if (checkUpdateBtn) {
+    checkUpdateBtn.addEventListener('click', async () => {
+      if (!navigator.onLine) {
+        if (typeof showToast === 'function') {
+          showToast('You are currently offline. Connect to check for updates.', '⚠️');
+        }
+        return;
+      }
+
+      const icon = document.getElementById('check-update-icon');
+      const text = document.getElementById('check-update-text');
+      if (icon) icon.classList.add('animate-spin');
+      if (text) text.textContent = 'Checking...';
+
+      try {
+        if (swRegistration) {
+          await swRegistration.update();
+          // Allow a brief moment for updatefound or waiting state to settle
+          setTimeout(() => {
+            if (icon) icon.classList.remove('animate-spin');
+            if (text) text.textContent = 'Check for Updates';
+
+            if (swRegistration.waiting || swRegistration.installing) {
+              if (typeof showToast === 'function') {
+                showToast('New version found! Applying update...', '🚀');
+              }
+              showUpdateBanner(swRegistration.waiting || swRegistration.installing);
+            } else {
+              if (typeof showToast === 'function') {
+                showToast('XPense Tracker is up to date! (v26)', '✓');
+              }
+            }
+          }, 1200);
+        } else {
+          if (icon) icon.classList.remove('animate-spin');
+          if (text) text.textContent = 'Check for Updates';
+          if (typeof showToast === 'function') {
+            showToast('XPense Tracker is up to date! (v26)', '✓');
+          }
+        }
+      } catch (err) {
+        if (icon) icon.classList.remove('animate-spin');
+        if (text) text.textContent = 'Check for Updates';
+        if (typeof showToast === 'function') {
+          showToast('Unable to check for updates right now.', '⚠️');
+        }
+      }
+    });
+  }
 }
 
 /**
@@ -632,7 +762,16 @@ function renderActiveTrip() {
     }
   }
 
-  if (activeTrip.sheetId && isOwner) {
+  const exportBtn = document.getElementById('export-report-btn');
+  if (exportBtn) {
+    if (!activeTrip) {
+      exportBtn.classList.add('opacity-40', 'pointer-events-none');
+    } else {
+      exportBtn.classList.remove('opacity-40', 'pointer-events-none');
+    }
+  }
+
+  if (activeTrip && activeTrip.sheetId && isOwner) {
     openSheetLink.href = `https://docs.google.com/spreadsheets/d/${activeTrip.sheetId}/edit`;
     openSheetLink.classList.remove('hidden');
   } else {

@@ -499,9 +499,154 @@ html.light #sync-banner {
   color: #854d0e !important;
 }
 
+html.light #update-banner {
+  background-color: #eff6ff !important;
+  border-color: #bfdbfe !important;
+  color: #1d4ed8 !important;
+}
+
+html.light #update-banner button {
+  background-color: #2563eb !important;
+  color: #ffffff !important;
+}
+
+html.light #settings-app-version-card {
+  background-color: #f8fafc !important;
+  border-color: #e2e8f0 !important;
+}
+
+html.light #settings-app-version-card span {
+  color: #0f172a !important;
+}
+
+html.light #settings-app-version-card #app-version-label {
+  color: #64748b !important;
+}
+
+html.light #check-update-btn {
+  background-color: #ffffff !important;
+  border-color: #cbd5e1 !important;
+  color: #1e293b !important;
+}
+
+html.light #check-update-btn:hover {
+  background-color: #f1f5f9 !important;
+  color: #0f172a !important;
+}
+
 html.light #shared-trip-warning {
   background-color: #fefce8 !important;
   border-color: #fef08a !important;
   color: #854d0e !important;
 }
+
+/* Quick Utility Buttons (Report & Open Sheet) */
+#export-report-btn {
+  box-shadow: 0 2px 6px -1px rgba(37, 99, 235, 0.35);
+}
+
+html.light #export-report-btn {
+  background-color: #2563eb !important;
+  color: #ffffff !important;
+  border-color: #1d4ed8 !important;
+  box-shadow: 0 2px 6px -1px rgba(37, 99, 235, 0.35) !important;
+}
+
+html.light #export-report-btn:hover {
+  background-color: #1d4ed8 !important;
+}
+
+html.light #open-sheet-link {
+  background-color: #ffffff !important;
+  color: #1e293b !important;
+  border: 1px solid #cbd5e1 !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06) !important;
+}
+
+html.light #open-sheet-link:hover {
+  background-color: #f8fafc !important;
+  border-color: #94a3b8 !important;
+  color: #0f172a !important;
+}
+
+/* ==========================================================================
+   Export Report Modal Light Theme & Print Styles
+   ========================================================================== */
+html.light #export-modal .bg-slate-850 {
+  background-color: #ffffff !important;
+  border-color: #e2e8f0 !important;
+}
+
+html.light #export-modal .bg-slate-800,
+html.light #export-modal .bg-slate-800\/80,
+html.light #export-modal .bg-slate-800\/60 {
+  background-color: #f8fafc !important;
+  border-color: #e2e8f0 !important;
+}
+
+html.light #export-modal .bg-slate-900,
+html.light #export-modal .bg-slate-900\/80,
+html.light #export-modal .bg-slate-900\/60 {
+  background-color: #f1f5f9 !important;
+  border-color: #cbd5e1 !important;
+}
+
+html.light #export-modal h3,
+html.light #export-modal h4,
+html.light #export-modal #export-metric-total,
+html.light #export-modal #export-metric-count {
+  color: #0f172a !important;
+}
+
+html.light #export-modal label,
+html.light #export-modal select,
+html.light #export-modal input {
+  color: #1e293b !important;
+}
+
+html.light #export-modal select,
+html.light #export-modal input[type="date"] {
+  background-color: #ffffff !important;
+  border-color: #cbd5e1 !important;
+}
+
+/* Print View Styles */
+@media print {
+  body {
+    background-color: #ffffff !important;
+    color: #000000 !important;
+  }
+
+  header,
+  #expense-form,
+  #theme-toggle-btn,
+  #refresh-btn,
+  #settings-btn,
+  #sync-banner,
+  #update-banner,
+  #toast {
+    display: none !important;
+  }
+
+  #export-modal {
+    position: static !important;
+    display: block !important;
+    background: none !important;
+    padding: 0 !important;
+  }
+
+  #export-modal > div {
+    max-width: 100% !important;
+    box-shadow: none !important;
+    border: none !important;
+    padding: 0 !important;
+  }
+
+  #download-pdf-btn,
+  #print-report-btn,
+  #close-export-modal-btn {
+    display: none !important;
+  }
+}
+
 
