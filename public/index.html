@@ -118,7 +118,20 @@
       <!-- Collapsible Category Breakdown Container (Hidden by default for cleaner view) -->
       <div id="breakdown-container" class="hidden mt-3.5 pt-3 border-t border-slate-750/70 transition-all duration-200">
         <div class="flex items-center justify-between mb-2.5">
-          <span class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Breakdown</span>
+          <!-- Breakdown Basis Dropdown -->
+          <div class="flex items-center space-x-1.5">
+            <span class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Breakdown</span>
+            <select
+              id="breakdown-basis-select"
+              class="h-7 px-2 bg-slate-900/90 text-slate-200 text-xs font-semibold rounded-lg border border-slate-700/80 focus:outline-none focus:ring-1 focus:ring-blue-500 cursor-pointer"
+              title="Select distribution basis"
+              aria-label="Chart distribution basis"
+            >
+              <option value="category" selected>Category</option>
+              <option value="payment">Payment Mode</option>
+              <option value="user">Paid By</option>
+            </select>
+          </div>
           <!-- View Switcher: Bar vs Pie -->
           <div class="inline-flex bg-slate-900/80 p-0.5 rounded-lg border border-slate-700/70 text-[11px]">
             <button

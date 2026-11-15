@@ -86,12 +86,18 @@ const SheetsAPI = {
         throw new Error(data.message || "Failed to log expense in Google Sheets.");
       }
 
+      // Cache updated summary returned from server
+      if (data.data) {
+        Storage.setCachedSummary(trip.id, data.data);
+      }
+
       return {
         success: true,
         offline: false,
         duplicate: !!data.duplicate,
         message: data.message,
-        row: data.row
+        row: data.row,
+        data: data.data
       };
 
     } catch (networkOrScriptError) {
@@ -267,6 +273,11 @@ const SheetsAPI = {
     if (data.status === 'error') {
       throw new Error(data.message || "Failed to delete transaction from Google Sheets.");
     }
+
+    if (data.data) {
+      Storage.setCachedSummary(trip.id, data.data);
+    }
+
     return data;
   }
 };

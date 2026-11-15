@@ -32,9 +32,10 @@ Use these direct links to access the required cloud consoles and services:
 
 * **100% Free & Serverless Stack:** Powered entirely by Firebase Hosting (Spark Free Tier) and Google Apps Script. No database costs, subscription fees, or server maintenance.
 * **100% Data Privacy:** Your financial records are written straight to your personal Google Drive spreadsheet. No intermediary database or third-party server ever touches your data.
-* **Bi-Directional Live Ledger:**
-  * `doGet`: Automatically calculates total trip spend in INR (₹), expense counts, category distribution, and displays recent transactions.
-  * `doPost`: Appends new expenses with Google Apps Script `LockService` write concurrency locking and idempotent deduplication to prevent duplicate records during spotty roaming connections.
+* **Bi-Directional Live Ledger with Concurrency Protection:**
+  * `doGet`: Automatically calculates total trip spend in the trip's base currency, expense counts, multi-basis distributions (Category, Payment Mode, Paid By / User), and displays recent transactions.
+  * `doPost`: Appends new expenses with Google Apps Script `LockService` write concurrency locking (30s timeout), pre/post `SpreadsheetApp.flush()` commits, verified Column A row indexing to eliminate simultaneous write overwrites, and idempotent deduplication.
+  * **Instant Live Reconcile**: `doPost` returns the full live ledger summary directly in the submit response so all concurrent member entries appear immediately without extra network requests.
 * **Creator (Owner) vs. Member Security Model:**
   * **Creator Mode:** The user who sets up the trip has full control to edit credentials, configure Sheet IDs, change Script URLs, pick base currencies, toggle active categories and payment modes, and delete mistaken entries.
   * **Member Mode:** Companions who open the trip via a Family Share Link get restricted Member access. They can log expenses and select synced tags, but configuration inputs (Sheet ID, Script URL, Passcode, and `⚙️ Customize` controls) are hidden/locked to prevent tampering.
@@ -43,9 +44,10 @@ Use these direct links to access the required cloud consoles and services:
   * `Expenses`: Real-time transaction ledger.
   * `Participants`: Custom "Paid By" tags persisted and synced across all devices.
   * `Config`: Active categories, payment modes, and base currency synced directly through Google Sheets so all companion devices stay up to date automatically without needing to re-share the join link.
-* **Visualizations (Bar & Pie / Donut Chart):**
-  * Clean, minimal hero card with the category distribution hidden by default.
-  * One-tap expand/collapse with state saved in `localStorage`.
+  * **Auto-Sync & Background Polling**: Automatic refresh on tab visibility/focus and background polling every 60 seconds (1 minute) when online.
+* **Multi-Basis Visualizations (Bar & Pie / Donut Chart):**
+  * Interactive distribution charts supporting **Category** (default), **Payment Mode**, and **Paid By / User** with a seamless header dropdown switcher.
+  * Clean, minimal hero card with one-tap expand/collapse and basis preference persisted in `localStorage`.
 * **Configurable Base Currency & Multi-Currency Engine:**
   * Creators can choose the trip's base currency on creation or in settings (defaulting to Indian Rupee ₹ / `INR`, customizable to `USD`, `EUR`, `GBP`, `AED`, `THB`, `SGD`, `JPY`, `VND`, `IDR`, etc.).
   * All ledger totals, hero spend, breakdown progress bars, donut charts, and transaction cards format authentically in the selected base currency.

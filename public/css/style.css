@@ -170,6 +170,12 @@ html.light #breakdown-container {
   border-top-color: #e2e8f0 !important;
 }
 
+html.light #breakdown-basis-select {
+  background-color: #ffffff !important;
+  color: #0f172a !important;
+  border-color: #cbd5e1 !important;
+}
+
 html.light #breakdown-container .inline-flex.bg-slate-900\/80 {
   background-color: #f1f5f9 !important;
   border-color: #cbd5e1 !important;

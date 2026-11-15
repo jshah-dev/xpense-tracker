@@ -149,12 +149,106 @@ function setTripConfig(spreadsheet, newConfig) {
   configSheet.appendRow(["baseCurrency", currentConfig.baseCurrency || "INR", now]);
   configSheet.appendRow(["categories", JSON.stringify(currentConfig.categories || []), now]);
   configSheet.appendRow(["paymentModes", JSON.stringify(currentConfig.paymentModes || []), now]);
+  SpreadsheetApp.flush();
 
   return currentConfig;
 }
 
 /**
- * GET Handler: Fetches live trip summary, category breakdown, recent ledger entries, and synced participant tags.
+ * Computes full live trip summary data, multi-basis breakdowns, and recent transactions.
+ * Shared between doGet and doPost to guarantee synchronized ledger data.
+ */
+function getTripSummaryData(spreadsheet, requestedSheetName) {
+  var sheet = getExpenseSheet(spreadsheet, requestedSheetName);
+  var participants = getParticipantsList(spreadsheet);
+  var config = getTripConfig(spreadsheet);
+
+  var data = sheet.getDataRange().getValues();
+
+  // If sheet has only header row or is blank
+  if (data.length <= 1) {
+    return {
+      tripName: spreadsheet.getName(),
+      totalSpendINR: 0,
+      totalCount: 0,
+      categoryBreakdown: {},
+      paidByBreakdown: {},
+      paymentModeBreakdown: {},
+      recentTransactions: [],
+      participants: participants,
+      config: config
+    };
+  }
+
+  var totalSpendINR = 0;
+  var categoryBreakdown = {};
+  var paidByBreakdown = {};
+  var paymentModeBreakdown = {};
+  var allTransactions = [];
+
+  // Row 0 is headers; iterate from row 1 to the end
+  for (var i = 1; i < data.length; i++) {
+    var row = data[i];
+    var txnId = String(row[0] || "").trim();
+    if (!txnId && !row[8]) continue; // Skip blank empty rows
+
+    var rawDate = row[1];
+    var formattedDate = "";
+    if (rawDate instanceof Date) {
+      formattedDate = Utilities.formatDate(rawDate, Session.getScriptTimeZone(), "yyyy-MM-dd");
+    } else if (rawDate) {
+      formattedDate = String(rawDate).substring(0, 10);
+    }
+
+    var paidBy = String(row[2] || "Self").trim();
+    var category = String(row[3] || "General").trim();
+    var description = String(row[4] || "").trim();
+    var originalAmount = Number(row[5]) || 0;
+    var currency = String(row[6] || "INR").trim();
+    var exchangeRate = Number(row[7]) || 1;
+    var amountINR = Number(row[8]) || 0;
+    var paymentMode = String(row[9] || "Cash").trim();
+    var loggedAt = String(row[10] || "");
+
+    totalSpendINR += amountINR;
+    categoryBreakdown[category] = (categoryBreakdown[category] || 0) + amountINR;
+    paidByBreakdown[paidBy] = (paidByBreakdown[paidBy] || 0) + amountINR;
+    paymentModeBreakdown[paymentMode] = (paymentModeBreakdown[paymentMode] || 0) + amountINR;
+
+    allTransactions.push({
+      id: txnId,
+      date: formattedDate,
+      paidBy: paidBy,
+      category: category,
+      description: description,
+      originalAmount: originalAmount,
+      currency: currency,
+      exchangeRate: exchangeRate,
+      amountINR: amountINR,
+      paymentMode: paymentMode,
+      loggedAt: loggedAt
+    });
+  }
+
+  // Sort recent in reverse chronological order and take latest 15
+  allTransactions.reverse();
+  var latestTransactions = allTransactions.slice(0, 15);
+
+  return {
+    tripName: spreadsheet.getName(),
+    totalSpendINR: Math.round(totalSpendINR * 100) / 100,
+    totalCount: allTransactions.length,
+    categoryBreakdown: categoryBreakdown,
+    paidByBreakdown: paidByBreakdown,
+    paymentModeBreakdown: paymentModeBreakdown,
+    recentTransactions: latestTransactions,
+    participants: participants,
+    config: config
+  };
+}
+
+/**
+ * GET Handler: Fetches live trip summary, multi-basis breakdowns, recent ledger entries, and synced config.
  */
 function doGet(e) {
   try {
@@ -179,93 +273,11 @@ function doGet(e) {
     }
 
     var spreadsheet = SpreadsheetApp.openById(params.sheetId);
-    var sheet = getExpenseSheet(spreadsheet, params.sheetName);
-    var participants = getParticipantsList(spreadsheet);
-    var config = getTripConfig(spreadsheet);
-
-    var data = sheet.getDataRange().getValues();
-
-    // If sheet has only header row or is blank
-    if (data.length <= 1) {
-      return jsonResponse({
-        status: "success",
-        data: {
-          tripName: spreadsheet.getName(),
-          totalSpendINR: 0,
-          totalCount: 0,
-          categoryBreakdown: {},
-          paidByBreakdown: {},
-          recentTransactions: [],
-          participants: participants,
-          config: config
-        }
-      });
-    }
-
-    var totalSpendINR = 0;
-    var categoryBreakdown = {};
-    var paidByBreakdown = {};
-    var allTransactions = [];
-
-    // Row 0 is headers; iterate from row 1 to the end
-    for (var i = 1; i < data.length; i++) {
-      var row = data[i];
-      var txnId = String(row[0] || "");
-      if (!txnId && !row[8]) continue; // Skip blank empty rows
-
-      var rawDate = row[1];
-      var formattedDate = "";
-      if (rawDate instanceof Date) {
-        formattedDate = Utilities.formatDate(rawDate, Session.getScriptTimeZone(), "yyyy-MM-dd");
-      } else if (rawDate) {
-        formattedDate = String(rawDate).substring(0, 10);
-      }
-
-      var paidBy = String(row[2] || "Self").trim();
-      var category = String(row[3] || "General").trim();
-      var description = String(row[4] || "").trim();
-      var originalAmount = Number(row[5]) || 0;
-      var currency = String(row[6] || "INR").trim();
-      var exchangeRate = Number(row[7]) || 1;
-      var amountINR = Number(row[8]) || 0;
-      var paymentMode = String(row[9] || "Cash").trim();
-      var loggedAt = String(row[10] || "");
-
-      totalSpendINR += amountINR;
-      categoryBreakdown[category] = (categoryBreakdown[category] || 0) + amountINR;
-      paidByBreakdown[paidBy] = (paidByBreakdown[paidBy] || 0) + amountINR;
-
-      allTransactions.push({
-        id: txnId,
-        date: formattedDate,
-        paidBy: paidBy,
-        category: category,
-        description: description,
-        originalAmount: originalAmount,
-        currency: currency,
-        exchangeRate: exchangeRate,
-        amountINR: amountINR,
-        paymentMode: paymentMode,
-        loggedAt: loggedAt
-      });
-    }
-
-    // Sort recent in reverse chronological order and take latest 15
-    allTransactions.reverse();
-    var latestTransactions = allTransactions.slice(0, 15);
+    var summaryData = getTripSummaryData(spreadsheet, params.sheetName);
 
     return jsonResponse({
       status: "success",
-      data: {
-        tripName: spreadsheet.getName(),
-        totalSpendINR: Math.round(totalSpendINR * 100) / 100,
-        totalCount: allTransactions.length,
-        categoryBreakdown: categoryBreakdown,
-        paidByBreakdown: paidByBreakdown,
-        recentTransactions: latestTransactions,
-        participants: participants,
-        config: config
-      }
+      data: summaryData
     });
 
   } catch (err) {
@@ -278,12 +290,12 @@ function doGet(e) {
 
 /**
  * POST Handler: Appends expense rows or updates synced participants.
- * Includes concurrency control (LockService) and write idempotency.
+ * Includes concurrency control (LockService), explicit row synchronization, and write idempotency.
  */
 function doPost(e) {
   var lock = LockService.getScriptLock();
   try {
-    lock.waitLock(10000);
+    lock.waitLock(30000); // 30-second lock wait for concurrent traffic bursts
   } catch (lockErr) {
     return jsonResponse({ status: "error", message: "Server busy, could not obtain lock. Please try again." });
   }
@@ -307,6 +319,9 @@ function doPost(e) {
 
     var spreadsheet = SpreadsheetApp.openById(payload.sheetId);
 
+    // Force flush to ensure any recently committed sheet rows from concurrent workers are read fresh
+    SpreadsheetApp.flush();
+
     // Action 1: Update Synced Participant Tags
     if (payload.action === "updateTags") {
       var partSheet = getParticipantsSheet(spreadsheet);
@@ -325,11 +340,13 @@ function doPost(e) {
       for (var u = 0; u < uniqueTags.length; u++) {
         partSheet.appendRow([uniqueTags[u]]);
       }
+      SpreadsheetApp.flush();
 
       return jsonResponse({
         status: "success",
         message: "Participants updated successfully in Google Sheets",
-        participants: uniqueTags
+        participants: uniqueTags,
+        data: getTripSummaryData(spreadsheet, payload.sheetName)
       });
     }
 
@@ -339,7 +356,8 @@ function doPost(e) {
       return jsonResponse({
         status: "success",
         message: "Trip configuration updated successfully in Google Sheets",
-        config: savedConfig
+        config: savedConfig,
+        data: getTripSummaryData(spreadsheet, payload.sheetName)
       });
     }
 
@@ -370,14 +388,16 @@ function doPost(e) {
       }
 
       sheet.deleteRow(foundRow);
+      SpreadsheetApp.flush(); // Ensure deletion commits before releasing lock
 
       return jsonResponse({
         status: "success",
-        message: "Expense deleted successfully from Google Sheet."
+        message: "Expense deleted successfully from Google Sheet.",
+        data: getTripSummaryData(spreadsheet, payload.sheetName)
       });
     }
 
-    // Action 3: Log Expense Transaction
+    // Action 4: Log Expense Transaction
     var sheet = getExpenseSheet(spreadsheet, payload.sheetName);
     var txn = payload.transaction;
     if (!txn || !txn.id) {
@@ -388,11 +408,12 @@ function doPost(e) {
 
     // Auto-create headers if sheet is brand new
     if (lastRow === 0) {
-      sheet.appendRow([
+      sheet.getRange(1, 1, 1, 11).setValues([[
         "Transaction ID", "Date", "Paid By", "Category", "Description",
         "Original Amount", "Currency", "Exchange Rate", "Amount (INR)",
         "Payment Mode", "Logged At"
-      ]);
+      ]]);
+      SpreadsheetApp.flush();
       lastRow = 1;
     }
 
@@ -408,7 +429,8 @@ function doPost(e) {
             status: "success",
             message: "Expense already logged (idempotent duplicate skipped)",
             row: checkStartRow + k,
-            duplicate: true
+            duplicate: true,
+            data: getTripSummaryData(spreadsheet, payload.sheetName)
           });
         }
       }
@@ -416,8 +438,18 @@ function doPost(e) {
 
     var paidByClean = String(txn.paidBy || "Self").trim();
 
-    // Append new expense row
-    sheet.appendRow([
+    // Accurately determine target row index by inspecting Column A (Transaction ID)
+    var colAValues = sheet.getRange(1, 1, Math.max(1, sheet.getLastRow()), 1).getValues();
+    var trueLastRow = 0;
+    for (var r = colAValues.length - 1; r >= 0; r--) {
+      if (colAValues[r][0] !== "" && colAValues[r][0] !== null && typeof colAValues[r][0] !== "undefined") {
+        trueLastRow = r + 1;
+        break;
+      }
+    }
+    var targetRow = Math.max(1, trueLastRow) + 1;
+
+    var newRowData = [
       String(txn.id).trim(),
       txn.date || Utilities.formatDate(new Date(), Session.getScriptTimeZone(), "yyyy-MM-dd"),
       paidByClean,
@@ -429,20 +461,27 @@ function doPost(e) {
       Number(txn.amountInINR) || 0,
       String(txn.paymentMode || "Cash").trim(),
       txn.loggedAt || new Date().toISOString()
-    ]);
+    ];
+
+    // Explicit row write prevents appendRow asynchronous overwrite collisions
+    sheet.getRange(targetRow, 1, 1, newRowData.length).setValues([newRowData]);
+    SpreadsheetApp.flush(); // Crucial: Commit write to Google Sheets storage before releasing lock
 
     // Ensure paidBy tag is in Participants sheet
     var existingParticipants = getParticipantsList(spreadsheet);
     if (existingParticipants.indexOf(paidByClean) === -1) {
       var pSheet = getParticipantsSheet(spreadsheet);
       pSheet.appendRow([paidByClean]);
+      SpreadsheetApp.flush();
     }
 
+    // Return the updated summary so caller immediately gets live ledger state
     return jsonResponse({
       status: "success",
       message: "Expense logged successfully",
-      row: sheet.getLastRow(),
-      duplicate: false
+      row: targetRow,
+      duplicate: false,
+      data: getTripSummaryData(spreadsheet, payload.sheetName)
     });
 
   } catch (err) {

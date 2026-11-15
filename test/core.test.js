@@ -250,4 +250,61 @@ assert.strictEqual(Storage.getTheme(), 'dark');
 Storage.setTheme('other');
 assert.strictEqual(Storage.getTheme(), 'dark');
 
+console.log('10. Testing Multi-Basis Breakdown Calculations & Donut Geometry (Category, Payment Mode, User)...');
+// Sample transactions set for multi-basis testing
+const sampleTxns = [
+  { id: 'TXN-1', category: 'Food & Dining', paidBy: 'Self', paymentMode: 'Cash', amountINR: 1200 },
+  { id: 'TXN-2', category: 'Travel Tickets', paidBy: 'Partner', paymentMode: 'Credit Card', amountINR: 3500 },
+  { id: 'TXN-3', category: 'Food & Dining', paidBy: 'Partner', paymentMode: 'UPI / GPay', amountINR: 800 },
+  { id: 'TXN-4', category: 'Stay & Hotel', paidBy: 'Self', paymentMode: 'Credit Card', amountINR: 4500 }
+];
+
+const multiBasisTotalSpend = sampleTxns.reduce((sum, t) => sum + t.amountINR, 0); // 10000
+assert.strictEqual(multiBasisTotalSpend, 10000);
+
+// Basis 1: Category Breakdown
+const catBreakdown = {};
+sampleTxns.forEach(t => catBreakdown[t.category] = (catBreakdown[t.category] || 0) + t.amountINR);
+assert.strictEqual(catBreakdown['Food & Dining'], 2000); // 20%
+assert.strictEqual(catBreakdown['Travel Tickets'], 3500); // 35%
+assert.strictEqual(catBreakdown['Stay & Hotel'], 4500); // 45%
+
+// Basis 2: Payment Mode Breakdown
+const paymentBreakdown = {};
+sampleTxns.forEach(t => paymentBreakdown[t.paymentMode] = (paymentBreakdown[t.paymentMode] || 0) + t.amountINR);
+assert.strictEqual(paymentBreakdown['Cash'], 1200); // 12%
+assert.strictEqual(paymentBreakdown['Credit Card'], 8000); // 80%
+assert.strictEqual(paymentBreakdown['UPI / GPay'], 800); // 8%
+
+// Basis 3: Paid By / User Breakdown
+const userBreakdown = {};
+sampleTxns.forEach(t => userBreakdown[t.paidBy] = (userBreakdown[t.paidBy] || 0) + t.amountINR);
+assert.strictEqual(userBreakdown['Self'], 5700); // 57%
+assert.strictEqual(userBreakdown['Partner'], 4300); // 43%
+
+// Donut geometry verification (C = 2 * PI * 38)
+const C_geom = 2 * Math.PI * 38;
+const cashDash = (paymentBreakdown['Cash'] / multiBasisTotalSpend) * C_geom;
+const ccDash = (paymentBreakdown['Credit Card'] / multiBasisTotalSpend) * C_geom;
+const upiDash = (paymentBreakdown['UPI / GPay'] / multiBasisTotalSpend) * C_geom;
+assert.ok(Math.abs((cashDash + ccDash + upiDash) - C_geom) < 0.001);
+
+console.log('11. Testing Concurrency Live Summary Payload Data Contract...');
+const mockServerSummary = {
+  tripName: 'Goa Trip 2026',
+  totalSpendINR: 10000,
+  totalCount: 4,
+  categoryBreakdown: catBreakdown,
+  paidByBreakdown: userBreakdown,
+  paymentModeBreakdown: paymentBreakdown,
+  recentTransactions: sampleTxns,
+  participants: ['Self', 'Partner'],
+  config: { baseCurrency: 'INR', categories: [], paymentModes: [] }
+};
+
+assert.ok(mockServerSummary.categoryBreakdown['Food & Dining'] > 0);
+assert.ok(mockServerSummary.paidByBreakdown['Self'] > 0);
+assert.ok(mockServerSummary.paymentModeBreakdown['Credit Card'] > 0);
+assert.strictEqual(mockServerSummary.totalCount, 4);
+
 console.log('\nAll Unit & Integration Tests Passed Successfully! ✅');

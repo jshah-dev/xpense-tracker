@@ -58,12 +58,50 @@ const PAYMENT_MODE_PRESETS = [
   { mode: 'Other', icon: '📝', label: 'Other' }
 ];
 
+const PAYMENT_MODE_META = {
+  'Cash': { icon: '💵', color: '#10b981', label: 'Cash' },
+  'UPI / GPay': { icon: '📱', color: '#3b82f6', label: 'UPI / GPay' },
+  'Credit Card': { icon: '💳', color: '#8b5cf6', label: 'Credit Card' },
+  'Debit Card': { icon: '💳', color: '#06b6d4', label: 'Debit Card' },
+  'Forex Card': { icon: '🌐', color: '#f59e0b', label: 'Forex Card' },
+  'Apple Pay / Google Pay': { icon: '📲', color: '#ec4899', label: 'Apple/GPay' },
+  'Net Banking / Wire': { icon: '🏦', color: '#6366f1', label: 'Net Banking' },
+  'Transit Card': { icon: '🎫', color: '#14b8a6', label: 'Transit Card' },
+  'Other': { icon: '📝', color: '#64748b', label: 'Other' }
+};
+
+const USER_PALETTE = [
+  '#3b82f6', // Blue
+  '#10b981', // Emerald
+  '#f59e0b', // Amber
+  '#8b5cf6', // Violet
+  '#ec4899', // Pink
+  '#06b6d4', // Cyan
+  '#f97316', // Orange
+  '#14b8a6', // Teal
+  '#6366f1', // Indigo
+  '#a855f7'  // Purple
+];
+
 let currentCategory = '';
 let currentPaidBy = '';
 let currentPaymentMode = '';
 let optimisticTransactions = [];
 let settingsActiveCategories = [];
 let settingsActivePaymentModes = [];
+let currentBreakdownBasis = localStorage.getItem('xpense_breakdown_basis') || 'category';
+let latestSummaryData = null;
+
+function getBreakdownItemMeta(key, basis, index) {
+  if (basis === 'payment') {
+    return PAYMENT_MODE_META[key] || { icon: '💳', color: '#64748b', label: key };
+  } else if (basis === 'user') {
+    const color = USER_PALETTE[(index || 0) % USER_PALETTE.length];
+    return { icon: '👤', color: color, label: key };
+  } else {
+    return CATEGORY_META[key] || CATEGORY_META['General / Other'] || { icon: '📦', color: '#64748b', label: key };
+  }
+}
 
 function getActiveBaseCurrency() {
   const trip = Storage.getActiveTrip();
@@ -117,6 +155,25 @@ function initApp() {
     showToast('Back online! Syncing queued expenses...');
     handleSyncOfflineQueue();
   });
+
+  // 8. Auto-refresh when tab becomes visible or receives focus
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible' && navigator.onLine) {
+      refreshTripData();
+    }
+  });
+  window.addEventListener('focus', () => {
+    if (navigator.onLine) {
+      refreshTripData();
+    }
+  });
+
+  // 9. Periodic background sync (every 60 seconds / 1 min if active and tab is visible)
+  setInterval(() => {
+    if (document.visibilityState === 'visible' && navigator.onLine) {
+      refreshTripData();
+    }
+  }, 60000);
 }
 
 /**
@@ -303,6 +360,17 @@ function setupEventListeners() {
     viewPieBtn.addEventListener('click', () => setBreakdownView('pie'));
   }
 
+  // Breakdown Basis Dropdown (Category, Payment Mode, Paid By)
+  const basisSelect = document.getElementById('breakdown-basis-select');
+  if (basisSelect) {
+    basisSelect.value = currentBreakdownBasis;
+    basisSelect.addEventListener('change', (e) => {
+      currentBreakdownBasis = e.target.value;
+      localStorage.setItem('xpense_breakdown_basis', currentBreakdownBasis);
+      renderActiveBreakdown();
+    });
+  }
+
   // Transactions Collapsible Toggle
   const toggleTxnsBtn = document.getElementById('toggle-txns-btn');
   if (toggleTxnsBtn) {
@@ -435,6 +503,11 @@ function initBreakdownPreferences() {
 
   const savedView = localStorage.getItem('xpense_breakdown_view') || 'bar';
   setBreakdownView(savedView);
+
+  const basisSelect = document.getElementById('breakdown-basis-select');
+  if (basisSelect) {
+    basisSelect.value = currentBreakdownBasis;
+  }
 }
 
 function handleToggleBreakdown() {
@@ -519,7 +592,8 @@ function renderActiveTrip() {
     document.getElementById('hero-total-count').textContent = '0 expenses';
     const pieCenter = document.getElementById('pie-center-amount');
     if (pieCenter) pieCenter.textContent = formatTripSpend(0);
-    renderCategoryBreakdown({}, 0);
+    latestSummaryData = null;
+    renderActiveBreakdown();
     openSheetLink.classList.add('hidden');
     if (quickEditBtn) quickEditBtn.classList.remove('hidden');
     // If no trip exists, prompt user with settings modal
@@ -1000,12 +1074,18 @@ async function handleFormSubmit(e) {
   try {
     const result = await SheetsAPI.logExpense(activeTrip, transaction);
 
-    // Update optimistic item status to synced
-    const target = optimisticTransactions.find(t => t.id === txnId);
-    if (target) {
-      target.status = result.offline ? 'offline' : 'synced';
+    // If server returned live summary data, reconcile full ledger immediately
+    if (result && result.data) {
+      renderSummaryData(result.data);
+    } else {
+      // Update optimistic item status to synced
+      const target = optimisticTransactions.find(t => t.id === txnId);
+      if (target) {
+        target.status = result.offline ? 'offline' : 'synced';
+      }
+      renderRecentTransactionsList();
+      renderActiveBreakdown();
     }
-    renderRecentTransactionsList();
 
     if (result.offline) {
       showToast('Offline: Saved to device queue.');
@@ -1142,13 +1222,14 @@ async function refreshTripData() {
  */
 function renderSummaryData(data) {
   if (!data) return;
+  latestSummaryData = data;
 
   // Hero Card
   document.getElementById('hero-total-amount').textContent = formatTripSpend(data.totalSpendINR || 0);
   document.getElementById('hero-total-count').textContent = `${data.totalCount || 0} expenses`;
 
-  // Category Progress Bar & Legend
-  renderCategoryBreakdown(data.categoryBreakdown || {}, data.totalSpendINR || 0);
+  // Render multi-basis breakdown (By Category, By Payment Mode, or By Paid By / User)
+  renderActiveBreakdown();
 
   // Recent Transactions: Combine server items with any still-pending local items
   const serverItems = (data.recentTransactions || []).map(t => ({
@@ -1179,7 +1260,58 @@ function renderSummaryData(data) {
   renderRecentTransactionsList();
 }
 
-function renderCategoryBreakdown(breakdown = {}, totalSpend = 0) {
+/**
+ * Computes the aggregated breakdown for the selected basis (category, payment, or user),
+ * merging server summary with any local optimistic pending transactions.
+ */
+function getActiveBreakdownData(basis) {
+  let baseBreakdown = {};
+  let totalSpend = 0;
+
+  if (latestSummaryData) {
+    totalSpend = Number(latestSummaryData.totalSpendINR) || 0;
+    if (basis === 'payment') {
+      baseBreakdown = { ...(latestSummaryData.paymentModeBreakdown || {}) };
+    } else if (basis === 'user') {
+      baseBreakdown = { ...(latestSummaryData.paidByBreakdown || {}) };
+    } else {
+      baseBreakdown = { ...(latestSummaryData.categoryBreakdown || {}) };
+    }
+  }
+
+  // Merge any optimistic pending items not yet confirmed by server
+  const pendingItems = optimisticTransactions.filter(t => t.status !== 'synced');
+  pendingItems.forEach(item => {
+    const amt = Number(item.amountInINR) || 0;
+    if (amt <= 0) return;
+    totalSpend += amt;
+
+    let key = 'General / Other';
+    if (basis === 'payment') {
+      key = String(item.paymentMode || 'Cash').trim();
+    } else if (basis === 'user') {
+      key = String(item.paidBy || 'Self').trim();
+    } else {
+      key = String(item.category || 'General / Other').trim();
+    }
+    baseBreakdown[key] = (baseBreakdown[key] || 0) + amt;
+  });
+
+  return { breakdown: baseBreakdown, totalSpend };
+}
+
+/**
+ * Triggers breakdown rendering for the currently selected basis (category, payment, user)
+ */
+function renderActiveBreakdown() {
+  const { breakdown, totalSpend } = getActiveBreakdownData(currentBreakdownBasis);
+  renderBreakdownChart(breakdown, totalSpend, currentBreakdownBasis);
+}
+
+/**
+ * Renders both Bar View and Pie / Donut View for any given breakdown distribution
+ */
+function renderBreakdownChart(breakdown = {}, totalSpend = 0, basis = 'category') {
   const bar = document.getElementById('category-progress-bar');
   const barLegend = document.getElementById('category-legend');
   const pieSvg = document.getElementById('category-pie-svg');
@@ -1192,8 +1324,8 @@ function renderCategoryBreakdown(breakdown = {}, totalSpend = 0) {
   if (pieLegend) pieLegend.innerHTML = '';
   if (pieCenterAmount) pieCenterAmount.textContent = formatTripSpend(totalSpend || 0);
 
-  const categories = Object.keys(breakdown).filter(cat => breakdown[cat] > 0);
-  if (categories.length === 0 || totalSpend <= 0) {
+  const keys = Object.keys(breakdown).filter(k => breakdown[k] > 0);
+  if (keys.length === 0 || totalSpend <= 0) {
     if (bar) bar.innerHTML = '<div class="w-full bg-slate-700"></div>';
     if (barLegend) barLegend.innerHTML = '<span class="text-slate-500 italic text-[11px]">No expenses recorded yet.</span>';
     if (pieSvg) {
@@ -1212,7 +1344,7 @@ function renderCategoryBreakdown(breakdown = {}, totalSpend = 0) {
   }
 
   // Sort descending by amount
-  categories.sort((a, b) => breakdown[b] - breakdown[a]);
+  keys.sort((a, b) => breakdown[b] - breakdown[a]);
 
   // Circumference for r=38
   const C = 2 * Math.PI * 38; // approx 238.761
@@ -1231,19 +1363,20 @@ function renderCategoryBreakdown(breakdown = {}, totalSpend = 0) {
     pieSvg.appendChild(track);
   }
 
-  categories.forEach(cat => {
-    const amount = breakdown[cat] || 0;
+  keys.forEach((key, idx) => {
+    const amount = breakdown[key] || 0;
     const ratio = amount / totalSpend;
     const pct = Math.round(ratio * 100);
     const pctDisplay = pct === 0 ? '<1%' : `${pct}%`;
-    const meta = CATEGORY_META[cat] || CATEGORY_META['General / Other'];
+    const meta = getBreakdownItemMeta(key, basis, idx);
+    const displayName = meta.label || key;
 
     // 1. Progress bar segment
     if (bar) {
       const seg = document.createElement('div');
       seg.style.width = `${Math.max(2, pct)}%`;
       seg.style.backgroundColor = meta.color;
-      seg.title = `${cat}: ${formatTripSpend(amount)} (${pctDisplay})`;
+      seg.title = `${displayName}: ${formatTripSpend(amount)} (${pctDisplay})`;
       bar.appendChild(seg);
     }
 
@@ -1253,7 +1386,7 @@ function renderCategoryBreakdown(breakdown = {}, totalSpend = 0) {
       leg.className = 'flex items-center space-x-1';
       leg.innerHTML = `
         <span class="w-2 h-2 rounded-full" style="background-color: ${meta.color}"></span>
-        <span>${meta.icon} ${cat.split(' ')[0]}: ${pctDisplay}</span>
+        <span>${meta.icon} ${displayName.split(' ')[0]}: ${pctDisplay}</span>
       `;
       barLegend.appendChild(leg);
     }
@@ -1272,7 +1405,7 @@ function renderCategoryBreakdown(breakdown = {}, totalSpend = 0) {
       slice.setAttribute('stroke-width', '14');
       slice.setAttribute('stroke-dasharray', `${dashLength.toFixed(2)} ${C.toFixed(2)}`);
       slice.setAttribute('stroke-dashoffset', offset.toFixed(2));
-      slice.innerHTML = `<title>${cat}: ${formatTripSpend(amount)} (${pctDisplay})</title>`;
+      slice.innerHTML = `<title>${displayName}: ${formatTripSpend(amount)} (${pctDisplay})</title>`;
       pieSvg.appendChild(slice);
 
       accumulatedRatio += ratio;
@@ -1285,7 +1418,7 @@ function renderCategoryBreakdown(breakdown = {}, totalSpend = 0) {
       row.innerHTML = `
         <div class="flex items-center space-x-1.5 min-w-0 pr-2">
           <span class="w-2.5 h-2.5 rounded-full flex-shrink-0" style="background-color: ${meta.color}"></span>
-          <span class="truncate text-slate-300 font-medium">${meta.icon} ${cat}</span>
+          <span class="truncate text-slate-300 font-medium">${meta.icon} ${displayName}</span>
         </div>
         <div class="flex items-center space-x-2 flex-shrink-0">
           <span class="font-semibold text-white">${formatTripSpend(amount)}</span>
@@ -1295,6 +1428,11 @@ function renderCategoryBreakdown(breakdown = {}, totalSpend = 0) {
       pieLegend.appendChild(row);
     }
   });
+}
+
+// Backward-compatible alias
+function renderCategoryBreakdown(breakdown = {}, totalSpend = 0) {
+  renderBreakdownChart(breakdown, totalSpend, 'category');
 }
 
 function renderRecentTransactionsList() {
