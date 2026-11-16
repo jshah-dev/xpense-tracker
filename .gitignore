@@ -3,3 +3,12 @@
 .firebaserc
 .DS_Store
 node_modules/
+
+# Security: Prevent any local credentials, service accounts, or clasp tokens from being committed
+*.json.key
+*service-account*.json
+*.clasprc.json
+.clasprc.json
+.clasp.json
+creds.json
+client_secret*.json

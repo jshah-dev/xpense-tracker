@@ -1,0 +1,57 @@
+name: Deploy Google Apps Script Web App
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'google-apps-script/Code.gs'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  deploy_gas:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install clasp CLI
+        run: npm install -g @google/clasp
+
+      - name: Ephemeral Authentication Setup
+        env:
+          CLASPRC_JSON: ${{ secrets.CLASPRC_JSON }}
+          CLASP_SCRIPT_ID: ${{ secrets.CLASP_SCRIPT_ID }}
+        run: |
+          mkdir -p ~/.clasprc
+          echo "$CLASPRC_JSON" > ~/.clasprc.json
+          chmod 600 ~/.clasprc.json
+
+          cat <<EOF > .clasp.json
+          {
+            "scriptId": "$CLASP_SCRIPT_ID",
+            "rootDir": "google-apps-script"
+          }
+          EOF
+
+      - name: Push Code to Google Apps Script
+        run: clasp push --force
+
+      - name: Deploy and Update Existing Web App
+        env:
+          CLASP_DEPLOYMENT_ID: ${{ secrets.CLASP_DEPLOYMENT_ID }}
+        run: |
+          clasp deploy --deploymentId "$CLASP_DEPLOYMENT_ID" --description "Automated deploy $(git rev-parse --short HEAD)"
+
+      - name: Secure Ephemeral Cleanup
+        if: always()
+        run: |
+          rm -f ~/.clasprc.json .clasp.json

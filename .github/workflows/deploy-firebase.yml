@@ -1,0 +1,46 @@
+name: Deploy Frontend to Firebase Hosting
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'public/**'
+      - 'firebase.json'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test_and_deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Run Core Test Suite
+        run: node test/core.test.js
+
+      - name: Setup Ephemeral .firebaserc
+        run: |
+          cat <<EOF > .firebaserc
+          {
+            "projects": {
+              "default": "xpense-tracker-jshahdev"
+            }
+          }
+          EOF
+
+      - name: Deploy to Firebase Hosting (Live Channel)
+        uses: FirebaseExtended/action-hosting-deploy@v0
+        with:
+          repoToken: '${{ secrets.GITHUB_TOKEN }}'
+          firebaseServiceAccount: '${{ secrets.FIREBASE_SERVICE_ACCOUNT_XPENSE_TRACKER_JSHAHDEV }}'
+          channelId: live
+          projectId: xpense-tracker-jshahdev

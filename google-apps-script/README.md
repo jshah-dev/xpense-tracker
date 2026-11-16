@@ -91,3 +91,53 @@ If you previously deployed `Code.gs`, you can update your script with the latest
 ### Family Sharing & Permissions:
 * Click **"Copy Family Share Link"** to send the link to family or travel companions.
 * **Automatic Protection:** Family members opening the link are assigned **Member Access** — they can log expenses and use the synced participant tags, but core settings (Sheet ID, Script URL, Passcode) are **locked** to prevent accidental modifications!
+
+---
+
+## 6. Automated Delivery via GitHub Actions (CI/CD)
+
+You can automate updates to your deployed Apps Script Web App whenever [`Code.gs`](./Code.gs) is updated in your repository, without ever changing your Web App URL.
+
+### Security Guarantee
+* **Zero secrets are committed to Git**: All authentication is performed via encrypted **GitHub Repository Secrets**.
+* Credentials are injected ephemerally on the virtual runner and shredded immediately upon completion.
+* Script properties (such as your `API_SECRET`) stored in Google's cloud `PropertiesService` are preserved untouched.
+
+### Step-by-Step Setup (for Personal `@gmail.com` Accounts)
+
+#### Step A: Enable the Google Apps Script API
+1. Visit [script.google.com/home/usersettings](https://script.google.com/home/usersettings).
+2. Toggle **Google Apps Script API** to **ON**.
+
+#### Step B: Permanent OAuth Token Setup (Avoids 7-Day Expiration)
+1. Go to the [Google Cloud Console](https://console.cloud.google.com).
+2. Select your Google Cloud project (or create one: `xpense-tracker-apps-script`).
+3. Under **APIs & Services** > **OAuth consent screen**:
+   * **User Type:** External
+   * Fill required app name and developer email.
+   * Under **Publishing status**, click **Publish App** to switch status to **In Production**. *(Note: Google verification is not required for personal developer use).*
+4. Under **APIs & Services** > **Credentials**:
+   * Click **Create Credentials** > **OAuth client ID**.
+   * **Application type:** `Desktop app`.
+   * Download the JSON file as `creds.json`.
+
+#### Step C: Authorize clasp Locally
+1. In your local terminal, run:
+   ```bash
+   npx @google/clasp login --creds creds.json
+   ```
+2. Authorize with your Google account in the browser.
+3. Once logged in, open the generated file `~/.clasprc.json` in your home folder.
+4. Copy its entire JSON content.
+5. Delete `creds.json` locally.
+
+#### Step D: Add Secrets to GitHub Repository
+In your GitHub repository, navigate to **Settings** > **Secrets and variables** > **Actions** and add these Repository Secrets:
+
+| Secret Name | Source / How to Obtain |
+| :--- | :--- |
+| `CLASPRC_JSON` | The JSON string copied from `~/.clasprc.json` |
+| `CLASP_SCRIPT_ID` | Apps Script Editor > ⚙️ **Project Settings** > **Script ID** |
+| `CLASP_DEPLOYMENT_ID` | Apps Script Editor > **Deploy** > **Manage deployments** > Active **Deployment ID** |
+
+Whenever you push changes affecting `google-apps-script/Code.gs`, GitHub Actions automatically pushes the code and updates your live deployment in-place!

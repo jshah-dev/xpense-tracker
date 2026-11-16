@@ -86,10 +86,16 @@ Use these direct links to access the required cloud consoles and services:
 
 ```text
 xpense-tracker/
+├── .github/
+│   └── workflows/
+│       ├── deploy-firebase.yml      # CI/CD: Automated Firebase Hosting deployment
+│       └── deploy-apps-script.yml   # CI/CD: Automated Google Apps Script deployment
 ├── firebase.json                # Firebase Hosting configuration & CDN cache headers
 ├── .firebaserc.example          # Template for Firebase project binding
 ├── google-apps-script/
 │   ├── Code.gs                  # Apps Script Web App bridge (doGet & doPost handlers)
+│   ├── appsscript.json          # Apps Script V8 runtime manifest
+│   ├── .claspignore             # File exclusions for clasp sync
 │   └── README.md                # Dedicated Google Apps Script deployment walkthrough
 ├── public/                      # Static assets served by Firebase CDN
 │   ├── index.html               # Mobile app layout, hero card, expense form, modals
@@ -180,6 +186,15 @@ xpense-tracker/
    ```text
    https://<your-firebase-project-id>.web.app
    ```
+
+#### Optional: Automated Firebase Deployment via GitHub Actions
+To automatically run unit tests and deploy your PWA upon every push to `main`:
+1. Generate the service account credentials:
+   ```bash
+   firebase init hosting:github
+   ```
+2. The CLI will automatically create a Google Cloud service account with minimal hosting permissions and add the encrypted secret `FIREBASE_SERVICE_ACCOUNT_XPENSE_TRACKER_JSHAHDEV` into your GitHub repository settings.
+3. Every push to `main` modifying `public/**` will automatically execute `node test/core.test.js` and deploy to Firebase Hosting!
 
 ---
 
